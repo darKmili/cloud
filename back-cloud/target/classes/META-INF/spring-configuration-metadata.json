@@ -1,0 +1,11 @@
+{
+  "groups": [
+    {
+      "name": "jwt",
+      "type": "com.cloud.encrypting_cloud_storage.util.MyJWTUtil",
+      "sourceType": "com.cloud.encrypting_cloud_storage.util.MyJWTUtil"
+    }
+  ],
+  "properties": [],
+  "hints": []
+}
