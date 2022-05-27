@@ -5,7 +5,7 @@
       <el-button type="text" size="medium" icon="el-icon-arrow-left" @click="back" v-if="path=='/'?false:true">返回上一级</el-button>
 <!--      <el-button type="primary" size="medium" icon="el-icon-upload2" @click="dialogVisible = true">上传文件</el-button>-->
       <UploadFile id="uploadfile"></UploadFile>
-      <el-button  size="medium" @click="addfolder = true">新建文件夹</el-button>
+      <el-button  size="medium" @click="addfolder = true" class="el-icon-folder-add">新建文件夹</el-button>
 
       <el-dialog
         title="输入文件夹名字"

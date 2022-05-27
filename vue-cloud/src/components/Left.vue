@@ -10,23 +10,23 @@
           <span slot="title">全部文件</span>
         </el-menu-item>
         <el-menu-item index="3" class="item">
-          <i class="el-icon-minus"></i>
+          <i class="el-icon-picture"></i>
           <span slot="title">图片</span>
         </el-menu-item>
         <el-menu-item index="3" class="item">
-          <i class="el-icon-minus"></i>
+          <i class="el-icon-document"></i>
           <span slot="title" class="item">文档</span>
         </el-menu-item>
         <el-menu-item index="3">
-          <i class="el-icon-minus"></i>
+          <i class="el-icon-video-camera"></i>
           <span slot="title" class="item">视频</span>
         </el-menu-item>
         <el-menu-item index="3">
-          <i class="el-icon-minus"></i>
+          <i class="el-icon-service"></i>
           <span slot="title" class="item">音乐</span>
         </el-menu-item>
         <el-menu-item index="3">
-          <i class="el-icon-minus"></i>
+          <i class="el-icon-setting"></i>
           <span slot="title" class="item">其他</span>
         </el-menu-item>
       </el-menu>

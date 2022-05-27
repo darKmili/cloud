@@ -1,6 +1,6 @@
 <template>
   <div class="file-up">
-    <el-button type="primary" size="medium" icon="el-icon-upload2" @click="dialogVisible = true">上传文件</el-button>
+    <el-button type="primary" size="medium" icon="el-icon-upload" @click="dialogVisible = true">上传文件</el-button>
     <el-dialog
       title="上传"
       :visible.sync="dialogVisible"
