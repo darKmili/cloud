@@ -32,12 +32,13 @@
       :data="tableData"
       style="width: 100%;margin-bottom: 20px;"
       row-key="inode"
-      >
+    >
       <el-table-column prop="dir" width="60" align="center">
       </el-table-column>
       <el-table-column prop="dir" width="60" align="center">
         <template slot-scope="scope">
-          <img class='image' v-if="scope.row.type==='FILE'" src="../assets/afile.png" style="height: 30px;max-height: 100%;max-width: 100%">
+          <img class='image' v-if="scope.row.type==='FILE'" src="../assets/afile.png"
+               style="height: 30px;max-height: 100%;max-width: 100%">
           <img class='image' v-else src="../assets/folder.png" style="height: 30px;max-height: 100%;max-width: 100%">
         </template>
       </el-table-column>
@@ -77,7 +78,7 @@
 </template>
 
 <script>
-import {newFolder, dateToString} from "../assets/js/pbkdf";
+import {newFolder, encryptKey, dateToString, stringtoUint8Array, dec, uint8ArrayToString, f} from "../assets/js/pbkdf";
 import request from "../assets/js/request";
 import UploadFile from "./UploadFile";
 
@@ -95,6 +96,7 @@ export default {
       loading: false,
       path: '/',
       username: localStorage.getItem('name'),
+
       addfolder: false,
       fileData: '',
       tableData: [],
@@ -109,12 +111,34 @@ export default {
     async init() {
       let _this = this
       this.userId = localStorage.getItem("uid")
+      let clientRandomValue = stringtoUint8Array(localStorage.getItem('clientRandomValue'));
+      const masterKey = stringtoUint8Array(localStorage.getItem('masterKey'));
       var root = null
-      request.get("/files/" + _this.userId).then(function (res) {
+
+      await request.get("/files/" + _this.userId).then(function (res) {
         console.log(JSON.stringify(res))
+
+
         _this.tableData = res.data
 
       })
+      console.log(JSON.stringify(_this.tableData))
+
+
+      for (var i = 1; i < _this.tableData.length; i++) {
+        var encryptedfileKey = stringtoUint8Array(_this.tableData[i].fileKey)
+        var fileKey = await dec(masterKey, clientRandomValue, encryptedfileKey)
+        var encryptedfilename = stringtoUint8Array(_this.tableData[i].filename)
+        console.log(encryptedfilename)
+        console.log(clientRandomValue)
+        console.log(fileKey)
+        //文件名解密出问题
+        // var filename = await dec(fileKey, clientRandomValue, encryptedfilename)
+        // console.log("文件名：" + filename)
+
+
+      }
+
       // 默认curInode 是 0
       this.curInode = 0
     },
@@ -128,6 +152,17 @@ export default {
     },
     // 新增文件
     newFile() {
+      // let clientRandomValue = this.stringtoUint8Array(localStorage.getItem('clientRandomValue'));
+      let n = this.input
+      console.log()
+      var time = new Date()
+      var mtime = dateToString(time)
+
+      this.tableData.push({id: 4, filename: n, size: '-', time: mtime,})
+
+
+      let fdata = newFolder(this.input)
+      //发送后端加密文件名，mtime，用主密钥加密的密钥
 
     },
 
