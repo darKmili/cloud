@@ -41,6 +41,10 @@
 
 <script>
 export default {
+  props: {
+      parentInode:null
+
+  },
 
   data() {
     return {
@@ -182,8 +186,8 @@ export default {
           size: filedata.size,
           blockSize: blockSize,
           fileKey: _this.uint8ArrayToString(fileKey),
-          userId: 1,
-          parentInode: 0
+          userId: localStorage.getItem("uid"),
+          parentInode: this.parentInode
         }
       };
 

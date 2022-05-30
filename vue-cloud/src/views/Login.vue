@@ -177,13 +177,14 @@ export default {
             localStorage.setItem("name",user.name);
             localStorage.setItem("clientRandomValue",user.clientRandomValue);
             localStorage.setItem("verifyKey",user.verifyKey);
-            // 这里应该存解密好了的主密钥
+            // // 这里应该有存解密好了的主密钥
             localStorage.setItem("encryptedMasterKey",user.encryptedMasterKey);
             localStorage.setItem("curLoadTime",user.curLoadTime);
             localStorage.setItem("lastLoadTime",user.lastLoadTime);
             localStorage.setItem("registerTime",user.registerTime);
             localStorage.setItem("usedCapacity",user.usedCapacity);
             localStorage.setItem("totalCapacity",user.totalCapacity);
+            localStorage.setItem("token",user.token);
           }
           saveUser(user)
           // TODO 解密主密钥
