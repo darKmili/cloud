@@ -1,37 +1,40 @@
 <template>
   <div>
-    <div class="bt">
-
-      <el-breadcrumb separator="/">
-        <el-breadcrumb-item>root</el-breadcrumb-item>
-      </el-breadcrumb>
-      <div style="height: 15px"></div>
-      <!--      <el-button type="text" size="medium" icon="el-icon-arrow-left" @click="back">返回</el-button>-->
-      <!--      <el-button type="primary" size="medium" icon="el-icon-upload2" @click="dialogVisible = true">上传文件</el-button>-->
+    <el-header>
       <UploadFile id="uploadfile" :parentInode="curInode"></UploadFile>
       <el-button @click="addfolder = true" class="el-icon-folder-add">新建文件夹</el-button>
+      <div id="search"><input placeholder="请输入内容" class="search" v-model="keywords"/><i class="el-icon-search"></i>
+      </div>
+      <div style="height: 15px"></div>
+    </el-header>
 
+    <div class="middle-wrapper" style="padding: 10px">
+      <!-- 面包屑导航栏 -->
+      <el-breadcrumb separator-class="el-icon-arrow-right">
+        <el-breadcrumb-item :to="{ path: '/Home' }">首页</el-breadcrumb-item>
+        <el-breadcrumb-item><a href="/">文件夹一</a></el-breadcrumb-item>
 
-      <el-dialog
-        title="输入文件夹名字"
-        :visible.sync="addfolder"
-        width="20%"
-      >
-        <el-input v-model="input" placeholder="请输入内容"></el-input>
-        <span slot="footer" class="dialog-footer">
+      </el-breadcrumb>
+
+    </div>
+
+    <el-dialog
+      title="输入文件夹名字"
+      :visible.sync="addfolder"
+      width="20%"
+    >
+      <el-input v-model="input" placeholder="请输入内容"></el-input>
+      <span slot="footer" class="dialog-footer">
             <el-button @click="addfolder = false">取 消</el-button>
            <el-button type="primary" @click="newFile">确 定</el-button>
         </span>
-      </el-dialog>
+    </el-dialog>
 
-      <div id="search"><input placeholder="请输入内容" class="search" v-model="keywords"/><i class="el-icon-search"></i>
-      </div>
-    </div>
-    <div style="height: 15px"></div>
     <el-table
       :data="tableData"
       style="width: 100%;margin-bottom: 20px;"
       row-key="inode"
+
     >
       <el-table-column prop="dir" width="60" align="center">
       </el-table-column>
@@ -129,14 +132,18 @@ export default {
         var encryptedfileKey = stringtoUint8Array(_this.tableData[i].fileKey)
         var fileKey = await dec(masterKey, clientRandomValue, encryptedfileKey)
         var encryptedfilename = stringtoUint8Array(_this.tableData[i].filename)
+        var encryptedmtime = stringtoUint8Array(_this.tableData[i].mtime)
         console.log(encryptedfilename)
         console.log(clientRandomValue)
         console.log(fileKey)
         //文件名解密出问题
         // var filename = await dec(fileKey, clientRandomValue, encryptedfilename)
         // console.log("文件名：" + filename)
-
-
+        //_this.tableData[i].filename=Uint8Arraytostring(filename)
+        // var mtime = await dec(fileKey, clientRandomValue, encryptedmtime)
+        // console.log("mtime：" + mtime)
+        //_this.tableData[i].mtime=Uint8Arraytostring(mtime)
+        //
       }
 
       // 默认curInode 是 0
