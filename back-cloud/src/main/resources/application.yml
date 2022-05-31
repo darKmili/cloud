@@ -2,7 +2,7 @@ spring:
   datasource:
     driver-class-name: com.mysql.jdbc.Driver
     username: root
-    password: 123456
+    password: lyh.1997
     url: jdbc:mysql://localhost:3306/cloud?characterEncoding=UTF-8&useSSL=false
 
   jpa:
@@ -68,11 +68,11 @@ qiniu:
   ## 此处填写你自己的七牛云 域名
   prefix: raxes0mqf.bkt.clouddn.com
 ceph:
-  accessKey: E09YVX3NX5ILINRUE66S
-  secretKey: KAbCAjQp0XcGtooCkcObfDPd20PLC7WUT7wDIYNx
-  bucket:
+  accessKey: HXYN0M01L86QP3NJLSCK
+  secretKey: EUR3LE0HpV7vCwTMORawH5HNpPCJ2dnBwfIy2SiJ
+  bucket: my-first-s3-bucket
   ## 填写域名或者IP
-  host: 192.168.1.118:80
+  host: 192.168.1.112:80
 
 jwt:
   #token返回头部

@@ -18,4 +18,5 @@ public class FileDto {
     private String fileKey;
     private Long userId;
     private Long parentInode;
+    private String mtime;
 }

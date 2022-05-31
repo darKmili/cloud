@@ -22,6 +22,11 @@ public class BlockServiceImpl implements BlockService {
     }
 
     @Override
+    public FileBlockPo downloadBlock(FileBlockPo fileBlockPo) throws Exception {
+        return null;
+    }
+
+    @Override
     public FileBlockPo save(FileBlockPo fileBlockPo) {
         return fileBlockRepository.save(fileBlockPo);
     }
