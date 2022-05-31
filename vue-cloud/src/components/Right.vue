@@ -26,7 +26,7 @@
       <el-input v-model="input" placeholder="请输入内容"></el-input>
       <span slot="footer" class="dialog-footer">
             <el-button @click="addfolder = false">取 消</el-button>
-           <el-button type="primary" @click="newFile">确 定</el-button>
+           <el-button type="primary" @click="newFolder">确 定</el-button>
         </span>
     </el-dialog>
 
@@ -40,8 +40,10 @@
       </el-table-column>
       <el-table-column prop="dir" width="60" align="center">
         <template slot-scope="scope">
+
           <img class='image' v-if="scope.row.type==='FILE'" src="../assets/afile.png"
                style="height: 30px;max-height: 100%;max-width: 100%">
+
           <img class='image' v-else src="../assets/folder.png" style="height: 30px;max-height: 100%;max-width: 100%">
         </template>
       </el-table-column>
@@ -56,7 +58,7 @@
         width="270">
       </el-table-column>
       <el-table-column
-        prop="time"
+        prop="mtime"
         label="修改时间"
         width="220">
       </el-table-column>
@@ -81,7 +83,7 @@
 </template>
 
 <script>
-import {newFolder, encryptKey, dateToString, stringtoUint8Array, dec, uint8ArrayToString, f} from "../assets/js/pbkdf";
+import {newFolder, encryptKey, dateToString, stringtoUint8Array, dec,showfilesize, uint8ArrayToString} from "../assets/js/pbkdf";
 import request from "../assets/js/request";
 import UploadFile from "./UploadFile";
 
@@ -117,35 +119,39 @@ export default {
       let clientRandomValue = stringtoUint8Array(localStorage.getItem('clientRandomValue'));
       const masterKey = stringtoUint8Array(localStorage.getItem('masterKey'));
       var root = null
-
+      let tdata=[]
       await request.get("/files/" + _this.userId).then(function (res) {
         console.log(JSON.stringify(res))
 
 
-        _this.tableData = res.data
+        tdata = res.data
 
       })
-      console.log(JSON.stringify(_this.tableData))
+      console.log(JSON.stringify(tdata))
 
 
-      for (var i = 1; i < _this.tableData.length; i++) {
-        var encryptedfileKey = stringtoUint8Array(_this.tableData[i].fileKey)
-        var fileKey = await dec(masterKey, clientRandomValue, encryptedfileKey)
-        var encryptedfilename = stringtoUint8Array(_this.tableData[i].filename)
-        var encryptedmtime = stringtoUint8Array(_this.tableData[i].mtime)
-        console.log(encryptedfilename)
-        console.log(clientRandomValue)
-        console.log(fileKey)
-        //文件名解密出问题
-        // var filename = await dec(fileKey, clientRandomValue, encryptedfilename)
-        // console.log("文件名：" + filename)
-        //_this.tableData[i].filename=Uint8Arraytostring(filename)
-        // var mtime = await dec(fileKey, clientRandomValue, encryptedmtime)
-        // console.log("mtime：" + mtime)
-        //_this.tableData[i].mtime=Uint8Arraytostring(mtime)
-        //
+      for (var i = 0; i < tdata.length; i++) {
+      //
+          var encryptedfileKey = stringtoUint8Array(tdata[i].fileKey)
+          var fileKey = await dec(masterKey, clientRandomValue, encryptedfileKey)
+          var encryptedfilename = stringtoUint8Array(tdata[i].filename)
+          // var encryptedmtime = stringtoUint8Array(tdata[i].mtime)
+          console.log(encryptedfilename)
+          console.log(clientRandomValue)
+          console.log(fileKey)
+         //文件名解密出问题 TODO
+      // var filename = await dec(fileKey, clientRandomValue, encryptedfilename)
+      //     console.log("文件名：" + filename)
+      //     tdata[i].filename=uint8ArrayToString(filename)
+      //     var mtime = await dec(fileKey, clientRandomValue, encryptedmtime)
+      //     console.log("mtime：" + mtime)
+      //     tdata[i].mtime=dateToString(uint8ArrayToString(mtime).toDate())
+          tdata[i].size=showfilesize(tdata[i].size)
+      //
+      //
       }
 
+      _this.tableData=tdata
       // 默认curInode 是 0
       this.curInode = 0
     },
@@ -158,18 +164,60 @@ export default {
 
     },
     // 新增文件
-    newFile() {
-      // let clientRandomValue = this.stringtoUint8Array(localStorage.getItem('clientRandomValue'));
-      let n = this.input
-      console.log()
-      var time = new Date()
-      var mtime = dateToString(time)
+    async newFolder() {
+      let clientRandomValue = stringtoUint8Array(localStorage.getItem('clientRandomValue'));
+      const masterKey = stringtoUint8Array(localStorage.getItem('masterKey'));
+      let name = this.input
+      console.log(name)
+      for (var i = 0; i < this.tableData.length; i++) {
+        if(this.tableData[i].filename==name){
+          name=name+'.1'
+        }
+      }
+      //文件名，创建时间加密发送
 
-      this.tableData.push({id: 4, filename: n, size: '-', time: mtime,})
+      var folderKey = new Uint8Array(2 ** 4);
 
+      let data1 = stringtoUint8Array(name)
+      console.log("fileName:" + data1);
+      var encryptedMasterKeyHashValue1 = await encryptKey(folderKey, clientRandomValue, data1)
+      var encryptedData1 = new Uint8Array(encryptedMasterKeyHashValue1)
+      console.log("encryptedData1:" + encryptedData1)
 
-      let fdata = newFolder(this.input)
-      //发送后端加密文件名，mtime，用主密钥加密的密钥
+      var Mtime = new Date()
+      var data2 = stringtoUint8Array(Mtime.toString())
+      console.log("Mtime:" + data2);
+      var encryptedMasterKeyHashValue2 = await encryptKey(folderKey, clientRandomValue, data2)
+      var encryptedData2 = new Uint8Array(encryptedMasterKeyHashValue2)
+      console.log("encryptedData2:" + encryptedData2)
+
+      var encryptedMasterKeyHashValue = await encryptKey(masterKey, clientRandomValue, folderKey)
+      var encryptedkey = new Uint8Array(encryptedMasterKeyHashValue)
+      console.log("encryptedkey:" + encryptedkey)
+
+      //发送后端加密文件名，mtime，用主密钥加密的密钥 TODO
+      let datafrom={
+        filename: uint8ArrayToString(encryptedData1),
+        size: '-',
+        mtime:uint8ArrayToString(encryptedData2),
+        fileKey: uint8ArrayToString(encryptedkey),
+        parentInode: this.curInode,
+        type:"DIR"
+      }
+
+      await request.post('/files/', JSON.stringify(datafrom)
+      ).then(async function (res) {
+
+        alert("请求后端成功" + JSON.stringify(res))
+        if (res.code === 2000) {
+
+        }
+      })
+
+      //文件夹展示到当前目录
+      var time=dateToString(Mtime)
+      this.tableData.push({filename: name, mtime: time, size:'-',type:"DIR"})
+
 
     },
 
