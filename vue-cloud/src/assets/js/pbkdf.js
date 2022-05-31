@@ -108,10 +108,6 @@ async function decryptKey(keyArr, clientRandomValue, theKeyToDecrypt) {
   return decryptedData
 }
 
-export async function f() {
-  return 1;
-}
-
 //解密
 export async function dec(left128Bits, randomvalue, encryptedMasterKey){
 
@@ -170,53 +166,7 @@ function readAsBinaryString(file) {
   })
 }
 
-//upload file
-async function UploadFile(obj) {
-  var file = document.getElementById("file").files[0];
-  //v1文件数据，v2文件前128KB数据
-  let {
-    v1 = new Uint8Array,
-    v2 = new Uint8Array
-  } = await readAsBinaryString(file)
 
-  console.log(v1)
-  console.log(v2)
-  //对文件前128 KB数据利用SHA-256生成256位密钥
-  const hashBuffer = await crypto.subtle.digest('SHA-256', v2)
-  var sha256Key = new Uint8Array(hashBuffer);
-  console.log("sha256Key:" + sha256Key);
-  //
-  // v3 = uint8ArrayToString(v2)
-  // js 获取文件名，大小，ctime,mtime,atime
-  fileSize = file.size;
-  console.log("file size:" + fileSize);
-  fileName = file.name;
-
-  fileType = file.type;
-  console.log(fileName)
-  console.log(fileType)
-
-  var Mtime = file.lastModifiedDate;
-  console.log(Mtime)
-  var Ctime = file.DateCreated;
-  console.log(Ctime)
-  var Atime = file.DateLastAccessed;
-  console.log(Atime)
-
-
-  //发送加密的密钥、文件名、ctime、mtime和atime
-  let xhr = new XMLHttpRequest();
-  xhr.open("post", url, true);//post data to registerhandle.jsp page
-
-  let data = new FormData();
-  data.append("key", key);
-  data.append("fileName", fileName);
-  data.append("ctime", ctime);
-  data.append("mtime", mtime);
-  data.append("atime", atime);
-
-  xhr.send(data);
-}
 
 //上传成功响应
 function uploadComplete(evt) {

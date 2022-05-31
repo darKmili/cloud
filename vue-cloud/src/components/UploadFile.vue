@@ -173,7 +173,10 @@ export default {
       var encryptedMasterKeyHashValue2 = await this.encryptKey(fileKey, clientRandomValue, data2)
       var encryptedData2 = new Uint8Array(encryptedMasterKeyHashValue2)
       console.log("encryptedData2:" + encryptedData2)
-
+      console.log("clientRandomValue:" + clientRandomValue)
+      console.log("fileKey"+fileKey)
+      var c=await dec(fileKey, clientRandomValue, encryptedData2)
+      console.log("c"+c)
       //对密钥加密
       let masterKey = this.stringtoUint8Array(localStorage.getItem('masterKey'));
       // let masterKey = new Uint8Array(2 ** 4);
@@ -193,7 +196,7 @@ export default {
           filename: _this.uint8ArrayToString(encryptedData1),
           size: filedata.size,
           blockSize: blockSize,
-
+          mtime:_this.uint8ArrayToString(encryptedData2),
           // fileKey: _this.uint8ArrayToString(fileKey),
           fileKey: _this.uint8ArrayToString(encryptedkey),
           userId: localStorage.getItem("uid"),

@@ -3,4 +3,7 @@
   <component name="ProjectType">
     <option name="id" value="jpab" />
   </component>
+  <component name="WebPackConfiguration">
+    <option name="mode" value="DISABLED" />
+  </component>
 </project>
