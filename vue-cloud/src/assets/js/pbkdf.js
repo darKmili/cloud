@@ -2,24 +2,24 @@
 
 //Convert Uint8Array to String
 export function uint8ArrayToString(arrayParam) {
-    let arrayLen = arrayParam.length;
-    let str = '';
-    for (var idx = 0; idx < arrayLen; ++idx) {
-        str += String.fromCharCode(arrayParam[idx]);
-    }
-    return str;
+  let arrayLen = arrayParam.length;
+  let str = '';
+  for (var idx = 0; idx < arrayLen; ++idx) {
+    str += String.fromCharCode(arrayParam[idx]);
+  }
+  return str;
 }
 
 //Convert String to Uint8Array
 export function stringtoUint8Array(theStr) {
-    var arr = [];
-    var strLen = theStr.length;
-    for (var idx = 0; idx < strLen; ++idx) {
-        arr.push(theStr.charCodeAt(idx));
-    }
+  var arr = [];
+  var strLen = theStr.length;
+  for (var idx = 0; idx < strLen; ++idx) {
+    arr.push(theStr.charCodeAt(idx));
+  }
 
-    var tmpUint8Array = new Uint8Array(arr);
-    return tmpUint8Array
+  var tmpUint8Array = new Uint8Array(arr);
+  return tmpUint8Array
 }
 
 /**
@@ -30,94 +30,101 @@ export function stringtoUint8Array(theStr) {
  */
 export async function pbkdf2Function(password, clientRandomValue) {
 
-    // var randomValueLength = clientRandomValue.byteLength;
-    var randomValueLength = 16;
-    console.log(clientRandomValue.length)
-    // clientRandomValue = uint8ArrayToString(clientRandomValue);
-    console.log("clientRandomValue:"+clientRandomValue)
-    //Generate Padding String ("SZTUBIGDATA"|| Padding || clientRandomValue)with length 200
-    var shaString = "SZTUBIGDATA";
-    var padLength = 200 - randomValueLength;
-    shaString = shaString.padEnd(padLength, 'A');
-    shaString = shaString + clientRandomValue;
-    console.log("shaString Length:" + shaString.length)
+  // var randomValueLength = clientRandomValue.byteLength;
+  var randomValueLength = 16;
+  console.log(clientRandomValue.length)
+  // clientRandomValue = uint8ArrayToString(clientRandomValue);
+  console.log("clientRandomValue:"+clientRandomValue)
+  //Generate Padding String ("SZTUBIGDATA"|| Padding || clientRandomValue)with length 200
+  var shaString = "SZTUBIGDATA";
+  var padLength = 200 - randomValueLength;
+  shaString = shaString.padEnd(padLength, 'A');
+  shaString = shaString + clientRandomValue;
+  console.log("shaString Length:" + shaString.length)
 
-    const textEncoder = new TextEncoder();
-    const shaMessage = textEncoder.encode(shaString);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', shaMessage)
+  const textEncoder = new TextEncoder();
+  const shaMessage = textEncoder.encode(shaString);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', shaMessage)
 
-    var salt = new Uint8Array(hashBuffer);
+  var salt = new Uint8Array(hashBuffer);
 
-    const enPassword = await window.crypto.subtle.importKey(
-        "raw",
-        textEncoder.encode(password),
-        {name: "PBKDF2"},
-        false,
-        ["deriveBits", "deriveKey"]
-    );
+  const enPassword = await window.crypto.subtle.importKey(
+    "raw",
+    textEncoder.encode(password),
+    {name: "PBKDF2"},
+    false,
+    ["deriveBits", "deriveKey"]
+  );
 
-    return window.crypto.subtle.deriveKey(
-        {
-            "name": "PBKDF2",
-            "hash": "SHA-256",
-            "salt": salt,
-            "iterations": 100000
-        },
-        enPassword,
-        {"name": "AES-GCM", "length": 256},
-        true,
-        ["encrypt", "decrypt"]
-    );
+  return window.crypto.subtle.deriveKey(
+    {
+      "name": "PBKDF2",
+      "hash": "SHA-256",
+      "salt": salt,
+      "iterations": 100000
+    },
+    enPassword,
+    {"name": "AES-GCM", "length": 256},
+    true,
+    ["encrypt", "decrypt"]
+  );
 
 }
 
 export async function encryptKey(keyArr, clientRandomValue, theKeyToEnc) {
 
-    const params = {
-        name: "AES-CBC",
-        iv: clientRandomValue,
-        length: 128
-    };
+  const params = {
+    name: "AES-CBC",
+    iv: clientRandomValue,
+    length: 128
+  };
 
-    const aesKey = await crypto.subtle.importKey(
-        "raw",
-        keyArr.buffer,
-        "AES-CBC",
-        true,
-        ["encrypt", "decrypt"]);
+  const aesKey = await crypto.subtle.importKey(
+    "raw",
+    keyArr.buffer,
+    "AES-CBC",
+    true,
+    ["encrypt", "decrypt"]);
 
-    const encryptedData = await crypto.subtle.encrypt(params, aesKey, theKeyToEnc);
-    return encryptedData
+  const encryptedData = await crypto.subtle.encrypt(params, aesKey, theKeyToEnc);
+  return encryptedData
 }
 
 async function decryptKey(keyArr, clientRandomValue, theKeyToDecrypt) {
-    const params = {
-        name: "AES-CBC",
-        iv: clientRandomValue,
-        length: 128
-    };
+  const params = {
+    name: "AES-CBC",
+    iv: clientRandomValue,
+    length: 128
+  };
 
-    const aesKey = await crypto.subtle.importKey(
-        "raw",
-        keyArr.buffer,
-        "AES-CBC",
-        true,
-        ["encrypt", "decrypt"]);
+  const aesKey = await crypto.subtle.importKey(
+    "raw",
+    keyArr.buffer,
+    "AES-CBC",
+    true,
+    ["encrypt", "decrypt"]);
 
-    const decryptedData = await crypto.subtle.decrypt(params, aesKey, theKeyToDecrypt);
-    return decryptedData
+  const decryptedData = await crypto.subtle.decrypt(params, aesKey, theKeyToDecrypt);
+  return decryptedData
 }
+
+export async function f() {
+  return 1;
+}
+
+//解密
 export async function dec(left128Bits, randomvalue, encryptedMasterKey){
 
   var deKeyBuffer = await decryptKey(left128Bits, randomvalue, encryptedMasterKey)
+  console.log("解密----1")
   var decryptedMasterKey = new Uint8Array(deKeyBuffer)
   console.log("decryptedMasterKey---" + decryptedMasterKey);
   return(decryptedMasterKey)
 }
 
 export function isEmail(emailStr) {
-    var emailReg = /^\w+@[a-zA-Z0-9]{2,10}(?:\.[a-z]{2,4}){1,3}$/;
-    return emailReg.test(emailStr);
+  var emailReg = /^\w+@[a-zA-Z0-9]{2,10}(?:\.[a-z]{2,4}){1,3}$/;
+  return emailReg.test(emailStr);
 }
 
 //文件目录
@@ -125,89 +132,103 @@ function Catalogshow(obj) {
 
 }
 
+//展示文件大小
+export function showfilesize(filesize){
+  if (filesize < 1048576) {
+    var size = (filesize / 1024).toFixed(2) + 'KB'
+  }
+  else if (filesize > 1048576 && filesize < 1073741824) {
+    var size = (filesize / 1024 / 1024).toFixed(2) + 'MB'
+  }
+  else if (filesize > 1073741824) {
+    var size = (filesize / 1024 / 1024 / 1024).toFixed(2) + 'GB'
+  }
+  return(size)
+}
+
 function readAsBinaryString(file) {
 
-    return new Promise((resolve, reject) => {
-        // var file = document.getElementById("file").files[0];
-        var reader = new FileReader();
-        //将文件以二进制形式读入页面
-        reader.readAsBinaryString(file);
-        reader.onload = (e) => {
-            var num = e.target.result
-            v1 = stringtoUint8Array(num);
-            console.log(v1)
-            //读取文件前128KB
-            var v2 = new Uint8Array(128 * 1024)
-            v2 = v1.subarray(0, 128 * 1024)
-            console.log(v2)
-            sessionStorage.setItem('v2', v2);
-            resolve({
-                v1,
-                v2
-            });
-        };
-    })
+  return new Promise((resolve, reject) => {
+    // var file = document.getElementById("file").files[0];
+    var reader = new FileReader();
+    //将文件以二进制形式读入页面
+    reader.readAsBinaryString(file);
+    reader.onload = (e) => {
+      var num = e.target.result
+      v1 = stringtoUint8Array(num);
+      console.log(v1)
+      //读取文件前128KB
+      var v2 = new Uint8Array(128 * 1024)
+      v2 = v1.subarray(0, 128 * 1024)
+      console.log(v2)
+      sessionStorage.setItem('v2', v2);
+      resolve({
+        v1,
+        v2
+      });
+    };
+  })
 }
 
 //upload file
 async function UploadFile(obj) {
-    var file = document.getElementById("file").files[0];
-    //v1文件数据，v2文件前128KB数据
-    let {
-        v1 = new Uint8Array,
-        v2 = new Uint8Array
-    } = await readAsBinaryString(file)
+  var file = document.getElementById("file").files[0];
+  //v1文件数据，v2文件前128KB数据
+  let {
+    v1 = new Uint8Array,
+    v2 = new Uint8Array
+  } = await readAsBinaryString(file)
 
-    console.log(v1)
-    console.log(v2)
-    //对文件前128 KB数据利用SHA-256生成256位密钥
-    const hashBuffer = await crypto.subtle.digest('SHA-256', v2)
-    var sha256Key = new Uint8Array(hashBuffer);
-    console.log("sha256Key:" + sha256Key);
-    //
-    // v3 = uint8ArrayToString(v2)
-    // js 获取文件名，大小，ctime,mtime,atime
-    fileSize = file.size;
-    console.log("file size:" + fileSize);
-    fileName = file.name;
+  console.log(v1)
+  console.log(v2)
+  //对文件前128 KB数据利用SHA-256生成256位密钥
+  const hashBuffer = await crypto.subtle.digest('SHA-256', v2)
+  var sha256Key = new Uint8Array(hashBuffer);
+  console.log("sha256Key:" + sha256Key);
+  //
+  // v3 = uint8ArrayToString(v2)
+  // js 获取文件名，大小，ctime,mtime,atime
+  fileSize = file.size;
+  console.log("file size:" + fileSize);
+  fileName = file.name;
 
-    fileType = file.type;
-    console.log(fileName)
-    console.log(fileType)
+  fileType = file.type;
+  console.log(fileName)
+  console.log(fileType)
 
-    var Mtime = file.lastModifiedDate;
-    console.log(Mtime)
-    var Ctime = file.DateCreated;
-    console.log(Ctime)
-    var Atime = file.DateLastAccessed;
-    console.log(Atime)
+  var Mtime = file.lastModifiedDate;
+  console.log(Mtime)
+  var Ctime = file.DateCreated;
+  console.log(Ctime)
+  var Atime = file.DateLastAccessed;
+  console.log(Atime)
 
 
-    //发送加密的密钥、文件名、ctime、mtime和atime
-    let xhr = new XMLHttpRequest();
-    xhr.open("post", url, true);//post data to registerhandle.jsp page
+  //发送加密的密钥、文件名、ctime、mtime和atime
+  let xhr = new XMLHttpRequest();
+  xhr.open("post", url, true);//post data to registerhandle.jsp page
 
-    let data = new FormData();
-    data.append("key", key);
-    data.append("fileName", fileName);
-    data.append("ctime", ctime);
-    data.append("mtime", mtime);
-    data.append("atime", atime);
+  let data = new FormData();
+  data.append("key", key);
+  data.append("fileName", fileName);
+  data.append("ctime", ctime);
+  data.append("mtime", mtime);
+  data.append("atime", atime);
 
-    xhr.send(data);
+  xhr.send(data);
 }
 
 //上传成功响应
 function uploadComplete(evt) {
-    undefined
-    //服务器接收完文件返回的结果
-    alert("上传成功！");
+  undefined
+  //服务器接收完文件返回的结果
+  alert("上传成功！");
 }
 
 //上传失败
 function uploadFailed(evt) {
-    undefined
-    alert("上传失败！");
+  undefined
+  alert("上传失败！");
 }
 
 export async function newFolder(Fname) {
@@ -241,7 +262,7 @@ export async function newFolder(Fname) {
 
 //delete file
 function DeleteFile(obj) {
-    new File()
+  new File()
 }
 
 //download file
@@ -256,27 +277,27 @@ function DownloadFile(obj) {
  **/
 function folderSingleCreate() {
 
-    var path = document.getElementById('folder_single').value;
+  var path = document.getElementById('folder_single').value;
 
-    if (!runObj.FolderExists(path)) {
-        runObj.CreateFolder(path);
-        alert('文件夹创建成功。');
-    } else {
-        alert('文件夹已存在。');
+  if (!runObj.FolderExists(path)) {
+    runObj.CreateFolder(path);
+    alert('文件夹创建成功。');
+  } else {
+    alert('文件夹已存在。');
 
-    }
+  }
 
 
 }
 
 function reset() {
-    document.getElementById('email').value = '';
-    document.getElementById('password').value = '';
-    document.getElementById('passwordAgain').value = '';
+  document.getElementById('email').value = '';
+  document.getElementById('password').value = '';
+  document.getElementById('passwordAgain').value = '';
 }
 
 function replace(x) {
-    x.value = x.value.trim()
+  x.value = x.value.trim()
 }
 
 export function dateToString(date){

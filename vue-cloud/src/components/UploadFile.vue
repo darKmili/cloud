@@ -40,9 +40,10 @@
 </template>
 
 <script>
+import {dec} from "../assets/js/pbkdf";
 export default {
   props: {
-      parentInode:null
+    parentInode:null
 
   },
 
@@ -143,7 +144,7 @@ export default {
       var v = await this.readAsBinaryString(filedata, 0, 1024 * 128);
       const sha256Key = await crypto.subtle.digest('SHA-256', v)
       var fileKey = new Uint8Array(sha256Key).subarray(0, 16);
-      console.log("key:" + fileKey);
+      console.log("fileKey:" + fileKey);
 
       // 获取用户随机数
       var fileSize = filedata.size;
@@ -160,10 +161,15 @@ export default {
       var encryptedMasterKeyHashValue1 = await this.encryptKey(fileKey, clientRandomValue, data1)
       var encryptedData1 = new Uint8Array(encryptedMasterKeyHashValue1)
       console.log("encryptedData1:" + encryptedData1)
+      var c=await dec(fileKey, clientRandomValue, encryptedData1)
+
+
+      console.log(clientRandomValue)
 
       // 上次修改时间
       var Mtime = filedata.lastModifiedDate;
       var data2 = this.stringtoUint8Array(Mtime.toString())
+      console.log("Mtime:" + data2);
       var encryptedMasterKeyHashValue2 = await this.encryptKey(fileKey, clientRandomValue, data2)
       var encryptedData2 = new Uint8Array(encryptedMasterKeyHashValue2)
       console.log("encryptedData2:" + encryptedData2)
@@ -172,9 +178,11 @@ export default {
       let masterKey = this.stringtoUint8Array(localStorage.getItem('masterKey'));
       // let masterKey = new Uint8Array(2 ** 4);
       // window.crypto.getRandomValues(masterKey);
+
       var encryptedMasterKeyHashValue = await this.encryptKey(masterKey, clientRandomValue, fileKey)
       var encryptedkey = new Uint8Array(encryptedMasterKeyHashValue)
       console.log("encrypted key:" + encryptedkey)
+      console.log("fileKey:" + fileKey);
 
       var blockSize = Math.ceil(filedata.size / paragraph)
       console.log("发送文件数据之前")
@@ -185,7 +193,9 @@ export default {
           filename: _this.uint8ArrayToString(encryptedData1),
           size: filedata.size,
           blockSize: blockSize,
-          fileKey: _this.uint8ArrayToString(fileKey),
+
+          // fileKey: _this.uint8ArrayToString(fileKey),
+          fileKey: _this.uint8ArrayToString(encryptedkey),
           userId: localStorage.getItem("uid"),
           parentInode: this.parentInode
         }
