@@ -105,11 +105,12 @@ import {
 import request from "../assets/js/request";
 import UploadFile from "./UploadFile";
 
-//解密列表数据
+//解密列表数据1
 async function encryptlist(tdata){
     let clientRandomValue = stringtoUint8Array(localStorage.getItem('clientRandomValue'));
     const masterKey = stringtoUint8Array(localStorage.getItem('masterKey'));
     for (var i = 0; i < tdata.length; i++) {
+
 
       var encryptedfileKey = stringtoUint8Array(tdata[i].fileKey)
       var fileKey = await dec(masterKey, clientRandomValue, encryptedfileKey)
