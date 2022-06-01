@@ -18,7 +18,8 @@
           :key="index"
           :to="{ path: ''}"
 
-        >{{item.name}}</el-breadcrumb-item>
+        >{{ item.name }}
+        </el-breadcrumb-item>
 
       </el-breadcrumb>
 
@@ -104,39 +105,39 @@ import {
 } from "../assets/js/pbkdf";
 import request from "../assets/js/request";
 import UploadFile from "./UploadFile";
+import {download} from "../assets/js/download";
 
 //解密列表数据1
-async function encryptlist(tdata){
-    let clientRandomValue = stringtoUint8Array(localStorage.getItem('clientRandomValue'));
-    const masterKey = stringtoUint8Array(localStorage.getItem('masterKey'));
-    for (var i = 0; i < tdata.length; i++) {
+async function encryptlist(tdata) {
+  let clientRandomValue = stringtoUint8Array(localStorage.getItem('clientRandomValue'));
+  const masterKey = stringtoUint8Array(localStorage.getItem('masterKey'));
+  for (var i = 0; i < tdata.length; i++) {
 
 
-      var encryptedfileKey = stringtoUint8Array(tdata[i].fileKey)
-      var fileKey = await dec(masterKey, clientRandomValue, encryptedfileKey)
-      var encryptedfilename = stringtoUint8Array(tdata[i].filename)
-      var encryptedmtime = stringtoUint8Array(tdata[i].mtime)
-      console.log(encryptedfilename)
-      console.log(encryptedmtime)
-      console.log(fileKey)
-      //文件名解密出问题 TODO
-      // var filename = await dec(fileKey, clientRandomValue, encryptedfilename)
-      //     console.log("文件名：" + filename)
-      //     tdata[i].filename=uint8ArrayToString(filename)
-      //     var mtime = await dec(fileKey, clientRandomValue, encryptedmtime)
-      //     console.log("mtime：" + mtime)
-      //     tdata[i].mtime=dateToString(uint8ArrayToString(mtime).toDate())
-      if(tdata[i].type==="DIR"){
+    var encryptedfileKey = stringtoUint8Array(tdata[i].fileKey)
+    var fileKey = await dec(masterKey, clientRandomValue, encryptedfileKey)
+    var encryptedfilename = stringtoUint8Array(tdata[i].filename)
+    var encryptedmtime = stringtoUint8Array(tdata[i].mtime)
+    console.log(encryptedfilename)
+    console.log(encryptedmtime)
+    console.log(fileKey)
+    //文件名解密出问题 TODO
+    // var filename = await dec(fileKey, clientRandomValue, encryptedfilename)
+    //     console.log("文件名：" + filename)
+    //     tdata[i].filename=uint8ArrayToString(filename)
+    //     var mtime = await dec(fileKey, clientRandomValue, encryptedmtime)
+    //     console.log("mtime：" + mtime)
+    //     tdata[i].mtime=dateToString(uint8ArrayToString(mtime).toDate())
+    if (tdata[i].type === "DIR") {
 
-        tdata[i].size='-'
-      }
-      else{
-        tdata[i].size=showfilesize(tdata[i].size)
-      }
-
+      tdata[i].size = '-'
+    } else {
+      tdata[i].size = showfilesize(tdata[i].size)
     }
-    return tdata
+
   }
+  return tdata
+}
 
 export default {
   name: 'Right',
@@ -158,8 +159,8 @@ export default {
       tableData: [],
       curInode: null,
       userId: null,
-      fromData:[],
-      breadlist:[]
+      fromData: [],
+      breadlist: []
     }
   },
   created() {
@@ -178,15 +179,19 @@ export default {
 
       })
       console.log(JSON.stringify(tdata))
-      this.fromData=tdata
-      _this.tableData =await encryptlist(tdata)
+      this.fromData = tdata
+      _this.tableData = await encryptlist(tdata)
 
       // 默认curInode 是 0
       this.curInode = 0
     },
     // 下载任务
     download(index, row) {
-
+      var userId = this.userId
+      download({
+        userId,
+        row
+      })
     },
     // 删除文件
     deleteFile(index, row) {
@@ -251,9 +256,8 @@ export default {
     },
 
 
-
     async clickFolder(row) {
-      if (row.type==="DIR") {
+      if (row.type === "DIR") {
         this.tableData = await encryptlist(row.childrenFiles)
         this.curInode = row.inode
         this.breadlist.push({"name": row.filename, "inode": row.inode})
@@ -304,8 +308,8 @@ export default {
     },
     async back() {
       this.breadlist.pop()
-      let a=this.fromData
-      let b=[]
+      let a = this.fromData
+      let b = []
       //返回上一级未完全完成 TODO
       // for (var i = 0; i < this.breadlist.length; i++) {
       //   for (var j = 0; j < a.length; j++){
@@ -315,7 +319,7 @@ export default {
       //   }
       //   }
       // }
-       this.tableData =await encryptlist(a)
+      this.tableData = await encryptlist(a)
 
     }
   }

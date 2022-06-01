@@ -55,13 +55,15 @@ public class BlockWebsocket {
      */
     private Session session;
 
-    /**
-     * 当前块的下标
-     */
-    private Integer curIdx;
 
+    /**
+     * 当前文件的情况
+     */
     private FilePo filePo;
 
+    /**
+     * 当前块的情况
+     */
     private FileBlockPo blockPo;
 
 
@@ -136,9 +138,8 @@ public class BlockWebsocket {
             filePo.setParentDir(new FilePo(fileDto.getParentInode()));
             filePo.setUser(new UserPo(fileDto.getUserId()));
             this.filePo = fileService.save(filePo);
-            this.curIdx = 0;
             try {
-                this.sendMessage(JSONObject.toJSONString(new BlockVo("blockMetadata",this.curIdx)));
+                this.sendMessage(JSONObject.toJSONString(new BlockVo("blockMetadata",0)));
             } catch (IOException e) {
                 e.printStackTrace();
             }

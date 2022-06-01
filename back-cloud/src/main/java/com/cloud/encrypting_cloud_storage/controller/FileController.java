@@ -57,7 +57,7 @@ public class FileController extends BaseController{
      * @return
      */
     @PutMapping("/{dirInode}")
-    public ApiResponse putDir(@PathVariable("userId") Long userId,@PathVariable("dirInode") Long dirInode,FilePo filePo) {
+    public ApiResponse putDir(@PathVariable("userId") Long userId,@PathVariable("dirInode") Long dirInode,@RequestBody FilePo filePo) {
         boolean b = fileService.exitsMyFile(dirInode);
         if(!b){
             return ApiResponse.ofStatus(StatusEnum.NO_RESOURCES);
@@ -71,9 +71,9 @@ public class FileController extends BaseController{
      * 在当前目录下，新建目录或者文件
      */
     @PostMapping("/{dirInode}")
-    public ApiResponse newDir(@PathVariable("userId") Long userId,@PathVariable("dirInode") Long dirInode,FilePo filePo) {
-        fileService.save(filePo);
-        return ApiResponse.ofSuccess();
+    public ApiResponse newDir(@PathVariable("userId") Long userId,@PathVariable("dirInode") Long dirInode,@RequestBody FilePo filePo) {
+        FilePo save = fileService.save(filePo);
+        return ApiResponse.ofSuccess(save);
     }
 
 }

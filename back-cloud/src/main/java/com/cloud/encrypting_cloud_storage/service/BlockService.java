@@ -1,6 +1,9 @@
 package com.cloud.encrypting_cloud_storage.service;
 
 import com.cloud.encrypting_cloud_storage.models.po.FileBlockPo;
+import com.cloud.encrypting_cloud_storage.models.po.FilePo;
+
+import java.util.Set;
 
 /**
  * @author leon
@@ -30,4 +33,11 @@ public interface BlockService {
      * @return
      */
     FileBlockPo save(FileBlockPo fileBlockPo);
+
+    /**
+     * 找到文件的所有块
+     * @param filePo
+     * @return
+     */
+    Set<FileBlockPo> findFileAllBlock(FilePo filePo);
 }

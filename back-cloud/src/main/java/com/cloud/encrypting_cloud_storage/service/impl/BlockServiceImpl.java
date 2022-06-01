@@ -1,9 +1,12 @@
 package com.cloud.encrypting_cloud_storage.service.impl;
 
 import com.cloud.encrypting_cloud_storage.models.po.FileBlockPo;
+import com.cloud.encrypting_cloud_storage.models.po.FilePo;
 import com.cloud.encrypting_cloud_storage.repository.FileBlockRepository;
 import com.cloud.encrypting_cloud_storage.service.BlockService;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Set;
 
 /**
  * Created with IntelliJ IDEA.
@@ -30,4 +33,10 @@ public class BlockServiceImpl implements BlockService {
     public FileBlockPo save(FileBlockPo fileBlockPo) {
         return fileBlockRepository.save(fileBlockPo);
     }
+
+    @Override
+    public Set<FileBlockPo> findFileAllBlock(FilePo filePo) {
+        return fileBlockRepository.findByParentFilePo(filePo);
+    }
+
 }
