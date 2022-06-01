@@ -10,9 +10,15 @@
 
     <div class="middle-wrapper" style="padding: 10px">
       <!-- 面包屑导航栏 -->
+
       <el-breadcrumb separator-class="el-icon-arrow-right">
-        <el-breadcrumb-item :to="{ path: '/Home' }">首页</el-breadcrumb-item>
-        <el-breadcrumb-item><a href="/">文件夹一</a></el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ path: '/Home',}"><a @click="back">返回</a></el-breadcrumb-item>
+        <el-breadcrumb-item
+          v-for="(item, index) in breadlist"
+          :key="index"
+          :to="{ path: ''}"
+
+        >{{item.name}}</el-breadcrumb-item>
 
       </el-breadcrumb>
 
@@ -40,17 +46,21 @@
       </el-table-column>
       <el-table-column prop="dir" width="60" align="center">
         <template slot-scope="scope">
-
           <img class='image' v-if="scope.row.type==='FILE'" src="../assets/afile.png"
                style="height: 30px;max-height: 100%;max-width: 100%">
-
           <img class='image' v-else src="../assets/folder.png" style="height: 30px;max-height: 100%;max-width: 100%">
         </template>
+
       </el-table-column>
       <el-table-column
         prop="filename"
         label="文件名"
         width="300">
+        <template slot-scope="scope">
+          <div style="cursor:pointer;" @click="clickFolder(scope.row)">
+            {{ scope.row.filename }}
+          </div>
+        </template>
       </el-table-column>
       <el-table-column
         prop="size"
@@ -83,9 +93,50 @@
 </template>
 
 <script>
-import {newFolder, encryptKey, dateToString, stringtoUint8Array, dec,showfilesize, uint8ArrayToString} from "../assets/js/pbkdf";
+import {
+  newFolder,
+  encryptKey,
+  dateToString,
+  stringtoUint8Array,
+  dec,
+  showfilesize,
+  uint8ArrayToString
+} from "../assets/js/pbkdf";
 import request from "../assets/js/request";
 import UploadFile from "./UploadFile";
+
+//解密列表数据1
+async function encryptlist(tdata){
+    let clientRandomValue = stringtoUint8Array(localStorage.getItem('clientRandomValue'));
+    const masterKey = stringtoUint8Array(localStorage.getItem('masterKey'));
+    for (var i = 0; i < tdata.length; i++) {
+
+
+      var encryptedfileKey = stringtoUint8Array(tdata[i].fileKey)
+      var fileKey = await dec(masterKey, clientRandomValue, encryptedfileKey)
+      var encryptedfilename = stringtoUint8Array(tdata[i].filename)
+      var encryptedmtime = stringtoUint8Array(tdata[i].mtime)
+      console.log(encryptedfilename)
+      console.log(encryptedmtime)
+      console.log(fileKey)
+      //文件名解密出问题 TODO
+      // var filename = await dec(fileKey, clientRandomValue, encryptedfilename)
+      //     console.log("文件名：" + filename)
+      //     tdata[i].filename=uint8ArrayToString(filename)
+      //     var mtime = await dec(fileKey, clientRandomValue, encryptedmtime)
+      //     console.log("mtime：" + mtime)
+      //     tdata[i].mtime=dateToString(uint8ArrayToString(mtime).toDate())
+      if(tdata[i].type==="DIR"){
+
+        tdata[i].size='-'
+      }
+      else{
+        tdata[i].size=showfilesize(tdata[i].size)
+      }
+
+    }
+    return tdata
+  }
 
 export default {
   name: 'Right',
@@ -107,6 +158,8 @@ export default {
       tableData: [],
       curInode: null,
       userId: null,
+      fromData:[],
+      breadlist:[]
     }
   },
   created() {
@@ -116,42 +169,18 @@ export default {
     async init() {
       let _this = this
       this.userId = localStorage.getItem("uid")
-      let clientRandomValue = stringtoUint8Array(localStorage.getItem('clientRandomValue'));
-      const masterKey = stringtoUint8Array(localStorage.getItem('masterKey'));
-      var root = null
-      let tdata=[]
+
+      let tdata = []
       await request.get("/files/" + _this.userId).then(function (res) {
         console.log(JSON.stringify(res))
-
 
         tdata = res.data
 
       })
       console.log(JSON.stringify(tdata))
+      this.fromData=tdata
+      _this.tableData =await encryptlist(tdata)
 
-
-      for (var i = 0; i < tdata.length; i++) {
-      //
-          var encryptedfileKey = stringtoUint8Array(tdata[i].fileKey)
-          var fileKey = await dec(masterKey, clientRandomValue, encryptedfileKey)
-          var encryptedfilename = stringtoUint8Array(tdata[i].filename)
-          // var encryptedmtime = stringtoUint8Array(tdata[i].mtime)
-          console.log(encryptedfilename)
-          console.log(clientRandomValue)
-          console.log(fileKey)
-         //文件名解密出问题 TODO
-      // var filename = await dec(fileKey, clientRandomValue, encryptedfilename)
-      //     console.log("文件名：" + filename)
-      //     tdata[i].filename=uint8ArrayToString(filename)
-      //     var mtime = await dec(fileKey, clientRandomValue, encryptedmtime)
-      //     console.log("mtime：" + mtime)
-      //     tdata[i].mtime=dateToString(uint8ArrayToString(mtime).toDate())
-          tdata[i].size=showfilesize(tdata[i].size)
-      //
-      //
-      }
-
-      _this.tableData=tdata
       // 默认curInode 是 0
       this.curInode = 0
     },
@@ -165,13 +194,14 @@ export default {
     },
     // 新增文件
     async newFolder() {
+      this.userId = localStorage.getItem("uid")
       let clientRandomValue = stringtoUint8Array(localStorage.getItem('clientRandomValue'));
       const masterKey = stringtoUint8Array(localStorage.getItem('masterKey'));
       let name = this.input
       console.log(name)
       for (var i = 0; i < this.tableData.length; i++) {
-        if(this.tableData[i].filename==name){
-          name=name+'.1'
+        if (this.tableData[i].filename == name) {
+          name = name + '.1'
         }
       }
       //文件名，创建时间加密发送
@@ -196,32 +226,39 @@ export default {
       console.log("encryptedkey:" + encryptedkey)
 
       //发送后端加密文件名，mtime，用主密钥加密的密钥 TODO
-      let datafrom={
-        filename: uint8ArrayToString(encryptedData1),
-        size: '-',
-        mtime:uint8ArrayToString(encryptedData2),
-        fileKey: uint8ArrayToString(encryptedkey),
-        parentInode: this.curInode,
-        type:"DIR"
-      }
 
-      await request.post('/files/', JSON.stringify(datafrom)
-      ).then(async function (res) {
+      await request.post("/files/" + this.userId + "/" + this.curInode, JSON.stringify({
+          "filename": uint8ArrayToString(encryptedData1),
+          "size": 0,
+          "mtime": uint8ArrayToString(encryptedData2),
+          "fileKey": uint8ArrayToString(encryptedkey),
+          "type": "DIR"
+        })
+      ).then(function (res) {
 
         alert("请求后端成功" + JSON.stringify(res))
         if (res.code === 2000) {
 
+          console.log(JSON.stringify(res.data))
         }
       })
 
       //文件夹展示到当前目录
-      var time=dateToString(Mtime)
-      this.tableData.push({filename: name, mtime: time, size:'-',type:"DIR"})
+      // var time=dateToString(Mtime)
+      // this.tableData.push({filename: name, mtime: time, size:'-',type:"DIR"})
 
 
     },
 
 
+
+    async clickFolder(row) {
+      if (row.type==="DIR") {
+        this.tableData = await encryptlist(row.childrenFiles)
+        this.curInode = row.inode
+        this.breadlist.push({"name": row.filename, "inode": row.inode})
+      }
+    },
     next(name) {
       var newpath = localStorage.getItem('path') + name + '/'
       this.path = newpath
@@ -265,54 +302,21 @@ export default {
 
 
     },
-    back() {
-      // console.log( localStorage.getItem('path').split('/'))
-      var str = localStorage.getItem('path').split('/')
-      str.splice(0, 1)
-      str.splice(str.length - 1, 1)
-      str.splice(str.length - 1, 1)
-      var backpath = '/'
-      str.forEach(item => {
-        backpath += item + '/'
-      })
-      this.path = backpath
-      this.$http.post(this.$HOST + 'v2/filelist', this.$qs.stringify({
-        sign: this.$sign,
-        username: localStorage.getItem('name'),
-        path: backpath
+    async back() {
+      this.breadlist.pop()
+      let a=this.fromData
+      let b=[]
+      //返回上一级未完全完成 TODO
+      // for (var i = 0; i < this.breadlist.length; i++) {
+      //   for (var j = 0; j < a.length; j++){
+      //     if(this.breadlist[i].inode===a[j].inode){
+      //       b=a[j].childrenFiles
+      //       console.log(JSON.stringify(b))
+      //   }
+      //   }
+      // }
+       this.tableData =await encryptlist(a)
 
-      })).then(res => {
-        localStorage.setItem('path', backpath)
-        this.tableData = []
-        res.data.data.dir.forEach(item => {
-          if (item.size == '') {
-            var size = '-'
-          } else {
-            if (item.size < 1048576) {
-              var size = (item.size / 1024).toFixed(2) + 'KB'
-            } else if (item.size > 1048576 && item.size < 1073741824) {
-              var size = (item.size / 1024 / 1024).toFixed(2) + 'MB'
-            } else if (item.size > 1073741824) {
-              var size = (item.size / 1024 / 1024 / 1024).toFixed(2) + 'GB'
-            }
-          }
-          this.tableData.push({name: item.name, time: item.mtime, img: item.img, size: size})
-        })
-        res.data.data.file.forEach(item => {
-          if (item.size == '') {
-            var size = '-'
-          } else {
-            if (item.size < 1048576) {
-              var size = (item.size / 1024).toFixed(2) + 'KB'
-            } else if (item.size > 1048576 && item.size < 1073741824) {
-              var size = (item.size / 1024 / 1024).toFixed(2) + 'MB'
-            } else if (item.size > 1073741824) {
-              var size = (item.size / 1024 / 1024 / 1024).toFixed(2) + 'GB'
-            }
-          }
-          this.tableData.push({name: item.name, time: item.mtime, img: item.img, size: size})
-        })
-      })
     }
   }
 }
