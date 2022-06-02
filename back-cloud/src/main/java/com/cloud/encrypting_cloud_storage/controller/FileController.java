@@ -72,6 +72,8 @@ public class FileController extends BaseController{
      */
     @PostMapping("/{dirInode}")
     public ApiResponse newDir(@PathVariable("userId") Long userId,@PathVariable("dirInode") Long dirInode,@RequestBody FilePo filePo) {
+        filePo.setUser(new UserPo(userId));
+        filePo.setParentDir(new FilePo(dirInode));
         FilePo save = fileService.save(filePo);
         return ApiResponse.ofSuccess(save);
     }

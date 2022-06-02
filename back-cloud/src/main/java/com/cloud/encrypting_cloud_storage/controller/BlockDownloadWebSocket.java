@@ -1,10 +1,8 @@
 package com.cloud.encrypting_cloud_storage.controller;
 
 import com.alibaba.fastjson.JSONObject;
-import com.cloud.encrypting_cloud_storage.exceptions.ApiException;
 import com.cloud.encrypting_cloud_storage.models.po.FileBlockPo;
 import com.cloud.encrypting_cloud_storage.models.po.FilePo;
-import com.cloud.encrypting_cloud_storage.models.vo.BlockVo;
 import com.cloud.encrypting_cloud_storage.service.BlockService;
 import com.cloud.encrypting_cloud_storage.service.FileService;
 import io.swagger.annotations.Api;
@@ -18,6 +16,9 @@ import javax.websocket.*;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -80,7 +81,7 @@ public class BlockDownloadWebSocket {
     }
 
     @Autowired
-    @Qualifier(value = "QiniuUploadService")
+    @Qualifier(value = "cephFileBlockService")
     public void setBlockService(BlockService blockService) {
         BlockDownloadWebSocket.blockService = blockService;
     }
@@ -118,20 +119,21 @@ public class BlockDownloadWebSocket {
         } else {
             allBlock = filePo.getFileBlocks();
         }
-
+        List<URL> urlList = new ArrayList<>();
         for (FileBlockPo fileBlockPo : allBlock) {
             try {
-                FileBlockPo downloadBlock = blockService.downloadBlock(fileBlockPo);
-                this.sendMessage(JSONObject.toJSONString(downloadBlock, false));
+                URL url = blockService.downloadBlock(fileBlockPo);
+                urlList.add(url);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
         try {
-            this.sendMessage("over");
+            this.sendMessage(JSONObject.toJSONString(urlList));
         } catch (IOException e) {
             e.printStackTrace();
         }
+
     }
 
     /**
@@ -141,25 +143,7 @@ public class BlockDownloadWebSocket {
      */
     @OnMessage
     public void onMessage(byte[] message) {
-        if (this.blockPo == null) {
-            throw new ApiException(5000, "服务端错误");
-        }
-        /**
-         * 将流存储到桶(ceph),或者其他云设备
-         */
-        this.blockPo.setData(message);
 
-        try {
-            boolean b = blockService.uploadBlock(blockPo);
-            if (!b) {
-                sendMessage("数据上传失败");
-            }
-            // next 表示当前传输完成，请客户端继续传输
-            sendMessage(JSONObject.toJSONString(new BlockVo("blockMetadata", this.blockPo.getIdx() + 1)));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        this.blockPo = null;
     }
 
     /**

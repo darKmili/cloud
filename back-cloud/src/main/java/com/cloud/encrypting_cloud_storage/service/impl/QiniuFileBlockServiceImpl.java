@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.net.URL;
+
 /**
  * @author leon
  * @Description: 七牛云上传服务
@@ -63,7 +65,7 @@ public class QiniuFileBlockServiceImpl extends BlockServiceImpl implements Initi
     }
 
     @Override
-    public FileBlockPo downloadBlock(FileBlockPo fileBlockPo) throws Exception {
+    public URL downloadBlock(FileBlockPo fileBlockPo) throws Exception {
 
         return super.downloadBlock(fileBlockPo);
     }

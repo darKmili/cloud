@@ -1,22 +1,17 @@
 package com.cloud.encrypting_cloud_storage.service.impl;
 
-import cn.hutool.core.collection.ListUtil;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.Bucket;
+import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.amazonaws.services.s3.model.PutObjectResult;
-import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.cloud.encrypting_cloud_storage.models.po.FileBlockPo;
-import com.cloud.encrypting_cloud_storage.models.po.FilePo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.net.URL;
 import java.util.List;
 
 /**
@@ -49,21 +44,9 @@ public class CephFileBlockServiceImpl extends BlockServiceImpl {
     }
 
     @Override
-    public FileBlockPo downloadBlock(FileBlockPo fileBlockPo) throws Exception {
-        S3Object object = amazonS3.getObject(bucketName, fileBlockPo.getFingerprint());
-        S3ObjectInputStream objectContent = object.getObjectContent();
-        InputStream delegateStream = objectContent.getDelegateStream();
-        int b;
-        List<Byte> res = new ArrayList<>();
-        while ((b=delegateStream.read())!=-1){
-            res.add((byte) b);
-        }
-        byte[] bytes = new byte[res.size()];
-        for (int i = 0; i < res.size(); i++) {
-            bytes[i] = res.get(i);
-        }
+    public URL downloadBlock(FileBlockPo fileBlockPo) throws Exception {
+        GeneratePresignedUrlRequest generatePresignedUrlRequest = new GeneratePresignedUrlRequest(bucketName, fileBlockPo.getFingerprint());
+        return amazonS3.generatePresignedUrl(generatePresignedUrlRequest);
 
-        fileBlockPo.setData(bytes);
-        return super.downloadBlock(fileBlockPo);
     }
 }

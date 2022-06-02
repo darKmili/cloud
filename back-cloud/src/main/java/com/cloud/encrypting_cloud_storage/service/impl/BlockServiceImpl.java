@@ -6,6 +6,7 @@ import com.cloud.encrypting_cloud_storage.repository.FileBlockRepository;
 import com.cloud.encrypting_cloud_storage.service.BlockService;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.net.URL;
 import java.util.Set;
 
 /**
@@ -25,7 +26,7 @@ public class BlockServiceImpl implements BlockService {
     }
 
     @Override
-    public FileBlockPo downloadBlock(FileBlockPo fileBlockPo) throws Exception {
+    public URL downloadBlock(FileBlockPo fileBlockPo) throws Exception {
         return null;
     }
 
