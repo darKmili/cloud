@@ -18,6 +18,7 @@
           :key="index"
           :to="{ path: ''}"
 
+
         >{{ item.name }}
         </el-breadcrumb-item>
 
@@ -259,55 +260,22 @@ export default {
     async clickFolder(row) {
       if (row.type === "DIR") {
         this.tableData = await encryptlist(row.childrenFiles)
+        this.breadlist.push({"name": row.filename, "inode": row.inode, "parent_inode": this.curInode})
         this.curInode = row.inode
-        this.breadlist.push({"name": row.filename, "inode": row.inode})
       }
     },
-    next(name) {
-      var newpath = localStorage.getItem('path') + name + '/'
-      this.path = newpath
-      this.$http.post(this.$HOST + 'v2/filelist', this.$qs.stringify({
-        sign: this.$sign,
-        username: localStorage.getItem('name'),
-        path: newpath
-
-      })).then(res => {
-        localStorage.setItem('path', newpath)
-        this.tableData = []
-        res.data.data.dir.forEach(item => {
-          if (item.size == '') {
-            var size = '-'
-          } else {
-            if (item.size < 1048576) {
-              var size = (item.size / 1024).toFixed(2) + 'KB'
-            } else if (item.size > 1048576 && item.size < 1073741824) {
-              var size = (item.size / 1024 / 1024).toFixed(2) + 'MB'
-            } else if (item.size > 1073741824) {
-              var size = (item.size / 1024 / 1024 / 1024).toFixed(2) + 'GB'
-            }
-          }
-          this.tableData.push({name: item.name, time: item.mtime, img: item.img, size: size})
-        })
-        res.data.data.file.forEach(item => {
-          if (item.size == '') {
-            var size = '-'
-          } else {
-            if (item.size < 1048576) {
-              var size = (item.size / 1024).toFixed(2) + 'KB'
-            } else if (item.size > 1048576 && item.size < 1073741824) {
-              var size = (item.size / 1024 / 1024).toFixed(2) + 'MB'
-            } else if (item.size > 1073741824) {
-              var size = (item.size / 1024 / 1024 / 1024).toFixed(2) + 'GB'
-            }
-          }
-          this.tableData.push({name: item.name, time: item.mtime, img: item.img, size: size})
-        })
-      })
-
-
-    },
     async back() {
+      let b = this.fromData
+      for (var i = 0; i < this.breadlist.length - 1; i++) {
+        for (var j = 0; j < b.length; j++) {
+          if (this.breadlist[i].inode === b[j].inode) {
+            b = b[j].childrenFiles
+          }
+        }
+      }
+      this.tableData = b
       this.breadlist.pop()
+
       let a = this.fromData
       let b = []
       //返回上一级未完全完成 TODO
@@ -320,6 +288,7 @@ export default {
       //   }
       // }
       this.tableData = await encryptlist(a)
+
 
     }
   }
