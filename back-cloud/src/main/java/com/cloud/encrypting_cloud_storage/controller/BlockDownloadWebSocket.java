@@ -97,6 +97,7 @@ public class BlockDownloadWebSocket {
         BlockDownloadWebsockets.put(userId, this);
         addOnlineCount();
         log.info("创建连接:" + "当前连接数" + onlineCount);
+
     }
 
     /**
@@ -125,6 +126,11 @@ public class BlockDownloadWebSocket {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+        try {
+            this.sendMessage("over");
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

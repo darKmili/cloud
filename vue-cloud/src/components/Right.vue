@@ -181,7 +181,8 @@ export default {
       })
       console.log(JSON.stringify(tdata))
       this.fromData = tdata
-      _this.tableData = await encryptlist(tdata)
+      // _this.tableData = await encryptlist(tdata)
+      _this.tableData = tdata
 
       // 默认curInode 是 0
       this.curInode = 0
@@ -277,7 +278,7 @@ export default {
       this.breadlist.pop()
 
       let a = this.fromData
-      let b = []
+      // let b = []
       //返回上一级未完全完成 TODO
       // for (var i = 0; i < this.breadlist.length; i++) {
       //   for (var j = 0; j < a.length; j++){

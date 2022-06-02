@@ -64,6 +64,7 @@ public class QiniuFileBlockServiceImpl extends BlockServiceImpl implements Initi
 
     @Override
     public FileBlockPo downloadBlock(FileBlockPo fileBlockPo) throws Exception {
+
         return super.downloadBlock(fileBlockPo);
     }
 }
