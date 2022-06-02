@@ -46,20 +46,20 @@ public class FilePo implements Serializable {
     private String filename;
     @Basic
     @Column(name = "atime")
-    @ApiModelProperty(value = "文件访问时间")
-    private Timestamp atime;
+    @ApiModelProperty(value = "文件访问时间，被加密")
+    private String atime;
     @Basic
     @Column(name = "ctime")
-    @ApiModelProperty(value = "文件创建时间")
-    private Timestamp ctime;
+    @ApiModelProperty(value = "文件创建时间,被加密")
+    private String ctime;
     @Basic
     @Column(name = "message_digest")
     @ApiModelProperty(value = "文件消息摘要")
     private String messageDigest;
     @Basic
     @Column(name = "mtime")
-    @ApiModelProperty(value = "文件修改时间")
-    private Timestamp mtime;
+    @ApiModelProperty(value = "文件修改时间,被加密")
+    private String mtime;
     @Basic
     @Column(name = "size")
     @ApiModelProperty(value = "文件大小")

@@ -16,6 +16,9 @@
         <el-breadcrumb-item
           v-for="(item, index) in breadlist"
           :key="index"
+          :to="{ path: ''}"
+
+
         >{{ item.name }}
         </el-breadcrumb-item>
 
@@ -104,6 +107,7 @@ import {
 import request from "../assets/js/request";
 import UploadFile from "./UploadFile";
 import {download} from "../assets/js/download";
+
 //解密列表数据1
 async function encryptlist(tdata) {
   let clientRandomValue = stringtoUint8Array(localStorage.getItem('clientRandomValue'));
@@ -271,6 +275,21 @@ export default {
       }
       this.tableData = b
       this.breadlist.pop()
+
+      let a = this.fromData
+      let b = []
+      //返回上一级未完全完成 TODO
+      // for (var i = 0; i < this.breadlist.length; i++) {
+      //   for (var j = 0; j < a.length; j++){
+      //     if(this.breadlist[i].inode===a[j].inode){
+      //       b=a[j].childrenFiles
+      //       console.log(JSON.stringify(b))
+      //   }
+      //   }
+      // }
+      this.tableData = await encryptlist(a)
+
+
     }
   }
 }

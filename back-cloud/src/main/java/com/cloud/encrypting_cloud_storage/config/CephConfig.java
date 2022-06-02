@@ -19,9 +19,9 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class CephConfig {
-    @Value("ceph.accessKey")
+    @Value("${ceph.accessKey}")
     private String accessKey;
-    @Value("ceph.secretKey")
+    @Value("${ceph.secretKey}")
     private String secretKey;
     @Value("${ceph.host}")
     private String host;
@@ -37,7 +37,7 @@ public class CephConfig {
     public AmazonS3 amazonS3Client(){
         return AmazonS3ClientBuilder.standard()
                 .withCredentials(new AWSStaticCredentialsProvider(awsCredentials()))
-                .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(host,"region"))
+                .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(host,"CN"))
                 .withClientConfiguration(cephConfiguration())
                 .build();
     }

@@ -53,14 +53,17 @@ public class QiniuFileBlockServiceImpl extends BlockServiceImpl implements Initi
     @Override
     public boolean uploadBlock(FileBlockPo fileBlockPo) throws Exception {
         log.debug("-------------------"+fileBlockPo.getFingerprint());
-        Response response = this.uploadManager.put(fileBlockPo.getData(), fileBlockPo.getFingerprint(), getUploadToken());
+        Response response = uploadManager.put(fileBlockPo.getData(), fileBlockPo.getFingerprint(), getUploadToken());
         int retry = 0;
         while (response.needRetry() && retry < 3) {
-            response = this.uploadManager.put(fileBlockPo.getData(), fileBlockPo.getFingerprint(), getUploadToken());
+            response = uploadManager.put(fileBlockPo.getData(), fileBlockPo.getFingerprint(), getUploadToken());
             retry++;
         }
         return true;
     }
 
-
+    @Override
+    public FileBlockPo downloadBlock(FileBlockPo fileBlockPo) throws Exception {
+        return super.downloadBlock(fileBlockPo);
+    }
 }
