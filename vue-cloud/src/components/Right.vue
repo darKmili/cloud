@@ -115,24 +115,26 @@ async function encryptlist(tdata) {
   for (var i = 0; i < tdata.length; i++) {
 
 
-    var encryptedfileKey = stringtoUint8Array(tdata[i].fileKey)
-    var fileKey = await dec(masterKey, clientRandomValue, encryptedfileKey)
-    var encryptedfilename = stringtoUint8Array(tdata[i].filename)
-    var encryptedmtime = stringtoUint8Array(tdata[i].mtime)
-    console.log(encryptedfilename)
-    console.log(encryptedmtime)
-    console.log(fileKey)
-    //文件名解密出问题 TODO
-    // var filename = await dec(fileKey, clientRandomValue, encryptedfilename)
-    //     console.log("文件名：" + filename)
-    //     tdata[i].filename=uint8ArrayToString(filename)
-    //     var mtime = await dec(fileKey, clientRandomValue, encryptedmtime)
-    //     console.log("mtime：" + mtime)
-    //     tdata[i].mtime=dateToString(uint8ArrayToString(mtime).toDate())
     if (tdata[i].type === "DIR") {
 
       tdata[i].size = '-'
     } else {
+      var encryptedfileKey = stringtoUint8Array(tdata[i].fileKey)
+      var fileKey = await dec(masterKey, clientRandomValue, encryptedfileKey)
+      var encryptedfilename = stringtoUint8Array(tdata[i].filename)
+      var encryptedmtime = stringtoUint8Array(tdata[i].mtime)
+      console.log(encryptedfilename)
+      console.log(encryptedmtime)
+      console.log(fileKey)
+      fileKey = new Uint8Array([166, 211, 186, 222, 50, 173, 124, 208, 231, 185, 89, 47, 99, 253, 157, 56]);
+      clientRandomValue = new Uint8Array([28, 99, 105, 140, 100, 252, 242, 31, 114, 250, 121, 220, 43, 185, 162, 151]);
+      //文件名解密出问题 TODO
+      var filename = await dec(fileKey, clientRandomValue, encryptedfilename)
+      console.log("文件名：" + filename)
+      tdata[i].filename = uint8ArrayToString(filename)
+      //     var mtime = await dec(fileKey, clientRandomValue, encryptedmtime)
+      //     console.log("mtime：" + mtime)
+      //     tdata[i].mtime=dateToString(uint8ArrayToString(mtime).toDate())
       tdata[i].size = showfilesize(tdata[i].size)
     }
 
@@ -175,13 +177,16 @@ export default {
       let tdata = []
       await request.get("/files/" + _this.userId).then(function (res) {
         console.log(JSON.stringify(res))
-
+        if (res.code !== 2000) {
+          alert(res.message);
+        }
         tdata = res.data
 
       })
+
       console.log(JSON.stringify(tdata))
       this.fromData = tdata
-      // _this.tableData = await encryptlist(tdata)
+      _this.tableData = await encryptlist(tdata)
       _this.tableData = tdata
 
       // 默认curInode 是 0
@@ -197,7 +202,14 @@ export default {
     },
     // 删除文件
     deleteFile(index, row) {
-
+      alert(index)
+      let _this = this
+      request.delete("/files/" + this.userId + "/" + row.inode).then(function (res) {
+        if (res.code === 2000) {
+          alert("请求后端成功" + JSON.stringify(res))
+          _this.tableData.splice(index, 1)
+        }
+      })
     },
     // 新增文件
     async newFolder() {
@@ -239,7 +251,8 @@ export default {
           "size": 0,
           "mtime": uint8ArrayToString(encryptedData2),
           "fileKey": uint8ArrayToString(encryptedkey),
-          "type": "DIR"
+          "type": "DIR",
+          "state": "UPLOADED",
         })
       ).then(function (res) {
 
@@ -251,8 +264,8 @@ export default {
       })
 
       //文件夹展示到当前目录
-      // var time=dateToString(Mtime)
-      // this.tableData.push({filename: name, mtime: time, size:'-',type:"DIR"})
+      var time = dateToString(Mtime)
+      this.tableData.push({filename: name, mtime: time, size: '-', type: "DIR"})
 
 
     },
