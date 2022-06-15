@@ -116,7 +116,6 @@ async function encryptlist(tdata) {
 
 
     if (tdata[i].type === "DIR") {
-
       tdata[i].size = '-'
     } else {
       var encryptedfileKey = stringtoUint8Array(tdata[i].fileKey)
@@ -126,16 +125,14 @@ async function encryptlist(tdata) {
       console.log(encryptedfilename)
       console.log(encryptedmtime)
       console.log(fileKey)
-      fileKey = new Uint8Array([166, 211, 186, 222, 50, 173, 124, 208, 231, 185, 89, 47, 99, 253, 157, 56]);
-      clientRandomValue = new Uint8Array([28, 99, 105, 140, 100, 252, 242, 31, 114, 250, 121, 220, 43, 185, 162, 151]);
       //文件名解密出问题 TODO
-      var filename = await dec(fileKey, clientRandomValue, encryptedfilename)
-      console.log("文件名：" + filename)
-      tdata[i].filename = uint8ArrayToString(filename)
+      // var filename = await dec(fileKey, clientRandomValue, encryptedfilename)
+      // console.log("文件名：" + filename)
+      // tdata[i].filename = uint8ArrayToString(filename)
       //     var mtime = await dec(fileKey, clientRandomValue, encryptedmtime)
       //     console.log("mtime：" + mtime)
       //     tdata[i].mtime=dateToString(uint8ArrayToString(mtime).toDate())
-      tdata[i].size = showfilesize(tdata[i].size)
+      // tdata[i].size = showfilesize(tdata[i].size)
     }
 
   }
@@ -186,11 +183,12 @@ export default {
 
       console.log(JSON.stringify(tdata))
       this.fromData = tdata
+      // 默认curInode 是 0
+      this.curInode = 0
+
       _this.tableData = await encryptlist(tdata)
       _this.tableData = tdata
 
-      // 默认curInode 是 0
-      this.curInode = 0
     },
     // 下载任务
     download(index, row) {
