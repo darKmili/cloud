@@ -26,7 +26,7 @@ public class BlockServiceImpl implements BlockService {
     }
 
     @Override
-    public URL downloadBlock(FileBlockPo fileBlockPo) throws Exception {
+    public byte[] downloadBlock(FileBlockPo fileBlockPo) throws Exception {
         return null;
     }
 

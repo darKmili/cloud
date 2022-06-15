@@ -92,7 +92,7 @@ public class BlockWebsocket {
     }
 
     @Autowired
-    @Qualifier(value = "QiniuUploadService")
+    @Qualifier(value = "cephFileBlockService")
     public void setBlockService(BlockService blockService) {
         BlockWebsocket.blockService = blockService;
     }
@@ -155,9 +155,10 @@ public class BlockWebsocket {
             blockPo.setFingerprint(Base64.encode(blockPo.getFingerprint()));
 
             // 将块元数据保存到数据库
-            this.blockPo = blockService.save(blockPo);
             // 检查 当前块的 数据是否已经存在与redis中
             String size = redisTemplate.opsForValue().get(blockPo.getFingerprint());
+            this.blockPo = blockService.save(blockPo);
+
             // 如果当前块存在于缓存中，表示当前数据已经存在，不需要进行接下来的上传操作
             if (size != null) {
                 try {
@@ -174,6 +175,7 @@ public class BlockWebsocket {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+
             }
 
         } else if (END_UPLOAD.equals(opt)) {
@@ -234,6 +236,7 @@ public class BlockWebsocket {
     @OnError
     public void sessionError(Session session, Throwable throwable) {
         log.info("发生异常事件");
+        throwable.printStackTrace();
     }
 
     /**

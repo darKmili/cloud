@@ -26,7 +26,7 @@ public interface BlockService {
      * @return
      * @throws Exception
      */
-    URL downloadBlock(FileBlockPo fileBlockPo) throws Exception;
+    byte[] downloadBlock(FileBlockPo fileBlockPo) throws Exception;
 
     /**
      * 保存文件块信息到数据库

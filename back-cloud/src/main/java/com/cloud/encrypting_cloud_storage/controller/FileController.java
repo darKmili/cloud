@@ -48,6 +48,7 @@ public class FileController extends BaseController{
     @ApiOperation(value = "删除目录，以及目录下的文件，以及文件对应的文件块元数据")
     public ApiResponse deleteDir(@PathVariable("userId") Long userId,@PathVariable("dirInode") Long dirInode) {
         fileService.deleteByInodeAndUser(dirInode,userId);
+        // TODO 删除目录，以及目录下的所有文件块缓存，如果文件块缓存量为0，还需要清除具体的数据
         return ApiResponse.ofSuccess();
     }
 

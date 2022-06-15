@@ -17,6 +17,7 @@ import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -112,27 +113,32 @@ public class BlockDownloadWebSocket {
     public void onMessage(String message, @PathParam("userId") String userId) {
         log.info("字符串消息" + message);
         // 前端传进来一个字符串信息
-        FilePo filePo = JSONObject.parseObject(message, FilePo.class);
+        FilePo filePo = null;
+        try {
+            filePo = JSONObject.parseObject(message, FilePo.class);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
         Set<FileBlockPo> allBlock = null;
         if (filePo.getFileBlocks() == null) {
             allBlock = blockService.findFileAllBlock(filePo);
         } else {
             allBlock = filePo.getFileBlocks();
         }
-        List<URL> urlList = new ArrayList<>();
+        List<byte[]> data = new ArrayList<>();
         for (FileBlockPo fileBlockPo : allBlock) {
             try {
-                URL url = blockService.downloadBlock(fileBlockPo);
-                urlList.add(url);
+                data.add(blockService.downloadBlock(fileBlockPo));
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
         try {
-            this.sendMessage(JSONObject.toJSONString(urlList));
+            this.sendMessage(JSONObject.toJSONString(data));
         } catch (IOException e) {
             e.printStackTrace();
         }
+
 
     }
 
@@ -174,6 +180,16 @@ public class BlockDownloadWebSocket {
      */
     public void sendMessage(String message) throws IOException {
         this.session.getBasicRemote().sendText(message);
+    }
+
+    /**
+     * 服务器主动提推送消息
+     *
+     * @param message 消息内容
+     * @throws IOException io异常抛出
+     */
+    public void sendMessage(byte[] message) throws IOException {
+        this.session.getBasicRemote().sendBinary(ByteBuffer.wrap(message));
     }
 
 
