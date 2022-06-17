@@ -3,6 +3,7 @@ package com.cloud.encrypting_cloud_storage.service;
 import com.cloud.encrypting_cloud_storage.models.po.FileBlockPo;
 import com.cloud.encrypting_cloud_storage.models.po.FilePo;
 
+import java.net.URL;
 import java.util.Set;
 
 /**
@@ -25,7 +26,7 @@ public interface BlockService {
      * @return
      * @throws Exception
      */
-    FileBlockPo downloadBlock(FileBlockPo fileBlockPo) throws Exception;
+    byte[] downloadBlock(FileBlockPo fileBlockPo) throws Exception;
 
     /**
      * 保存文件块信息到数据库

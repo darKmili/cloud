@@ -18,6 +18,7 @@
           :key="index"
           :to="{ path: ''}"
 
+
         >{{ item.name }}
         </el-breadcrumb-item>
 
@@ -114,25 +115,24 @@ async function encryptlist(tdata) {
   for (var i = 0; i < tdata.length; i++) {
 
 
-    var encryptedfileKey = stringtoUint8Array(tdata[i].fileKey)
-    var fileKey = await dec(masterKey, clientRandomValue, encryptedfileKey)
-    var encryptedfilename = stringtoUint8Array(tdata[i].filename)
-    var encryptedmtime = stringtoUint8Array(tdata[i].mtime)
-    console.log(encryptedfilename)
-    console.log(encryptedmtime)
-    console.log(fileKey)
-    //文件名解密出问题 TODO
-    // var filename = await dec(fileKey, clientRandomValue, encryptedfilename)
-    //     console.log("文件名：" + filename)
-    //     tdata[i].filename=uint8ArrayToString(filename)
-    //     var mtime = await dec(fileKey, clientRandomValue, encryptedmtime)
-    //     console.log("mtime：" + mtime)
-    //     tdata[i].mtime=dateToString(uint8ArrayToString(mtime).toDate())
     if (tdata[i].type === "DIR") {
-
       tdata[i].size = '-'
     } else {
-      tdata[i].size = showfilesize(tdata[i].size)
+      var encryptedfileKey = stringtoUint8Array(tdata[i].fileKey)
+      var fileKey = await dec(masterKey, clientRandomValue, encryptedfileKey)
+      var encryptedfilename = stringtoUint8Array(tdata[i].filename)
+      var encryptedmtime = stringtoUint8Array(tdata[i].mtime)
+      console.log(encryptedfilename)
+      console.log(encryptedmtime)
+      console.log(fileKey)
+      //文件名解密出问题 TODO
+      // var filename = await dec(fileKey, clientRandomValue, encryptedfilename)
+      // console.log("文件名：" + filename)
+      // tdata[i].filename = uint8ArrayToString(filename)
+      //     var mtime = await dec(fileKey, clientRandomValue, encryptedmtime)
+      //     console.log("mtime：" + mtime)
+      //     tdata[i].mtime=dateToString(uint8ArrayToString(mtime).toDate())
+      // tdata[i].size = showfilesize(tdata[i].size)
     }
 
   }
@@ -174,16 +174,21 @@ export default {
       let tdata = []
       await request.get("/files/" + _this.userId).then(function (res) {
         console.log(JSON.stringify(res))
-
+        if (res.code !== 2000) {
+          alert(res.message);
+        }
         tdata = res.data
 
       })
+
       console.log(JSON.stringify(tdata))
       this.fromData = tdata
-      _this.tableData = await encryptlist(tdata)
-
       // 默认curInode 是 0
       this.curInode = 0
+
+      _this.tableData = await encryptlist(tdata)
+      _this.tableData = tdata
+
     },
     // 下载任务
     download(index, row) {
@@ -195,7 +200,14 @@ export default {
     },
     // 删除文件
     deleteFile(index, row) {
-
+      alert(index)
+      let _this = this
+      request.delete("/files/" + this.userId + "/" + row.inode).then(function (res) {
+        if (res.code === 2000) {
+          alert("请求后端成功" + JSON.stringify(res))
+          _this.tableData.splice(index, 1)
+        }
+      })
     },
     // 新增文件
     async newFolder() {
@@ -237,7 +249,8 @@ export default {
           "size": 0,
           "mtime": uint8ArrayToString(encryptedData2),
           "fileKey": uint8ArrayToString(encryptedkey),
-          "type": "DIR"
+          "type": "DIR",
+          "state": "UPLOADED",
         })
       ).then(function (res) {
 
@@ -249,8 +262,8 @@ export default {
       })
 
       //文件夹展示到当前目录
-      // var time=dateToString(Mtime)
-      // this.tableData.push({filename: name, mtime: time, size:'-',type:"DIR"})
+      var time = dateToString(Mtime)
+      this.tableData.push({filename: name, mtime: time, size: '-', type: "DIR"})
 
 
     },
@@ -259,57 +272,24 @@ export default {
     async clickFolder(row) {
       if (row.type === "DIR") {
         this.tableData = await encryptlist(row.childrenFiles)
+        this.breadlist.push({"name": row.filename, "inode": row.inode, "parent_inode": this.curInode})
         this.curInode = row.inode
-        this.breadlist.push({"name": row.filename, "inode": row.inode})
       }
     },
-    next(name) {
-      var newpath = localStorage.getItem('path') + name + '/'
-      this.path = newpath
-      this.$http.post(this.$HOST + 'v2/filelist', this.$qs.stringify({
-        sign: this.$sign,
-        username: localStorage.getItem('name'),
-        path: newpath
-
-      })).then(res => {
-        localStorage.setItem('path', newpath)
-        this.tableData = []
-        res.data.data.dir.forEach(item => {
-          if (item.size == '') {
-            var size = '-'
-          } else {
-            if (item.size < 1048576) {
-              var size = (item.size / 1024).toFixed(2) + 'KB'
-            } else if (item.size > 1048576 && item.size < 1073741824) {
-              var size = (item.size / 1024 / 1024).toFixed(2) + 'MB'
-            } else if (item.size > 1073741824) {
-              var size = (item.size / 1024 / 1024 / 1024).toFixed(2) + 'GB'
-            }
-          }
-          this.tableData.push({name: item.name, time: item.mtime, img: item.img, size: size})
-        })
-        res.data.data.file.forEach(item => {
-          if (item.size == '') {
-            var size = '-'
-          } else {
-            if (item.size < 1048576) {
-              var size = (item.size / 1024).toFixed(2) + 'KB'
-            } else if (item.size > 1048576 && item.size < 1073741824) {
-              var size = (item.size / 1024 / 1024).toFixed(2) + 'MB'
-            } else if (item.size > 1073741824) {
-              var size = (item.size / 1024 / 1024 / 1024).toFixed(2) + 'GB'
-            }
-          }
-          this.tableData.push({name: item.name, time: item.mtime, img: item.img, size: size})
-        })
-      })
-
-
-    },
     async back() {
+      let b = this.fromData
+      for (var i = 0; i < this.breadlist.length - 1; i++) {
+        for (var j = 0; j < b.length; j++) {
+          if (this.breadlist[i].inode === b[j].inode) {
+            b = b[j].childrenFiles
+          }
+        }
+      }
+      this.tableData = b
       this.breadlist.pop()
+
       let a = this.fromData
-      let b = []
+      // let b = []
       //返回上一级未完全完成 TODO
       // for (var i = 0; i < this.breadlist.length; i++) {
       //   for (var j = 0; j < a.length; j++){
@@ -320,6 +300,7 @@ export default {
       //   }
       // }
       this.tableData = await encryptlist(a)
+
 
     }
   }

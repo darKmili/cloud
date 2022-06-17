@@ -1,10 +1,8 @@
 package com.cloud.encrypting_cloud_storage.controller;
 
 import com.alibaba.fastjson.JSONObject;
-import com.cloud.encrypting_cloud_storage.exceptions.ApiException;
 import com.cloud.encrypting_cloud_storage.models.po.FileBlockPo;
 import com.cloud.encrypting_cloud_storage.models.po.FilePo;
-import com.cloud.encrypting_cloud_storage.models.vo.BlockVo;
 import com.cloud.encrypting_cloud_storage.service.BlockService;
 import com.cloud.encrypting_cloud_storage.service.FileService;
 import io.swagger.annotations.Api;
@@ -18,6 +16,10 @@ import javax.websocket.*;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
+import java.net.URL;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -80,7 +82,7 @@ public class BlockDownloadWebSocket {
     }
 
     @Autowired
-    @Qualifier(value = "QiniuUploadService")
+    @Qualifier(value = "cephFileBlockService")
     public void setBlockService(BlockService blockService) {
         BlockDownloadWebSocket.blockService = blockService;
     }
@@ -97,6 +99,7 @@ public class BlockDownloadWebSocket {
         BlockDownloadWebsockets.put(userId, this);
         addOnlineCount();
         log.info("创建连接:" + "当前连接数" + onlineCount);
+
     }
 
     /**
@@ -110,22 +113,33 @@ public class BlockDownloadWebSocket {
     public void onMessage(String message, @PathParam("userId") String userId) {
         log.info("字符串消息" + message);
         // 前端传进来一个字符串信息
-        FilePo filePo = JSONObject.parseObject(message, FilePo.class);
+        FilePo filePo = null;
+        try {
+            filePo = JSONObject.parseObject(message, FilePo.class);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
         Set<FileBlockPo> allBlock = null;
         if (filePo.getFileBlocks() == null) {
             allBlock = blockService.findFileAllBlock(filePo);
         } else {
             allBlock = filePo.getFileBlocks();
         }
-
+        List<byte[]> data = new ArrayList<>();
         for (FileBlockPo fileBlockPo : allBlock) {
             try {
-                FileBlockPo downloadBlock = blockService.downloadBlock(fileBlockPo);
-                this.sendMessage(JSONObject.toJSONString(downloadBlock, false));
+                data.add(blockService.downloadBlock(fileBlockPo));
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
+        try {
+            this.sendMessage(JSONObject.toJSONString(data));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
     }
 
     /**
@@ -135,25 +149,7 @@ public class BlockDownloadWebSocket {
      */
     @OnMessage
     public void onMessage(byte[] message) {
-        if (this.blockPo == null) {
-            throw new ApiException(5000, "服务端错误");
-        }
-        /**
-         * 将流存储到桶(ceph),或者其他云设备
-         */
-        this.blockPo.setData(message);
 
-        try {
-            boolean b = blockService.uploadBlock(blockPo);
-            if (!b) {
-                sendMessage("数据上传失败");
-            }
-            // next 表示当前传输完成，请客户端继续传输
-            sendMessage(JSONObject.toJSONString(new BlockVo("blockMetadata", this.blockPo.getIdx() + 1)));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        this.blockPo = null;
     }
 
     /**
@@ -184,6 +180,16 @@ public class BlockDownloadWebSocket {
      */
     public void sendMessage(String message) throws IOException {
         this.session.getBasicRemote().sendText(message);
+    }
+
+    /**
+     * 服务器主动提推送消息
+     *
+     * @param message 消息内容
+     * @throws IOException io异常抛出
+     */
+    public void sendMessage(byte[] message) throws IOException {
+        this.session.getBasicRemote().sendBinary(ByteBuffer.wrap(message));
     }
 
 

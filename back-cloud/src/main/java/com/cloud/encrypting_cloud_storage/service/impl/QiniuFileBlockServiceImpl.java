@@ -10,6 +10,9 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.net.URL;
 
 /**
  * @author leon
@@ -17,6 +20,7 @@ import org.springframework.stereotype.Service;
  * @date 2022年04月26日 13:57
  */
 @Service("QiniuUploadService")
+@Transactional(rollbackFor = Exception.class)
 @Slf4j
 public class QiniuFileBlockServiceImpl extends BlockServiceImpl implements InitializingBean {
     private final Auth auth;
@@ -63,7 +67,8 @@ public class QiniuFileBlockServiceImpl extends BlockServiceImpl implements Initi
     }
 
     @Override
-    public FileBlockPo downloadBlock(FileBlockPo fileBlockPo) throws Exception {
+    public byte[] downloadBlock(FileBlockPo fileBlockPo) throws Exception {
+
         return super.downloadBlock(fileBlockPo);
     }
 }
