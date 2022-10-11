@@ -50,6 +50,8 @@ INSERT INTO `file` VALUES (27, 'ö×_dÓ|òÎEU¤¬h', NULL, NULL, NULL, '|
 INSERT INTO `file` VALUES (29, '\0¶	·ÄîrvÊpYr~', NULL, NULL, NULL, '#ab~#kWôiÉJ	ÃÅ/jE²Òüvù}5î¦oujú\rcqGø', 0, 0, 'UPLOADED', 'DIR', 3, NULL, 'q8gßíÆM×\ZÑ-ãZö	f ´_ó±ÕÏ');
 INSERT INTO `file` VALUES (30, '³È5ß3:|¡;÷¡W', NULL, NULL, NULL, '.^:ðf#QoÑÌ25Á^Üñ	ûC>mEtDh &ÊÚ×Zr§GÎKB', 29, 1097, 'UPLOADING', 'FILE', 3, 1, 'ýØ*Gvc;ÿå©¬Zb½V1ì>uÆÀ;µd ¢');
 
+SET SQL_SAFE_UPDATES = 0;
+Update `file` SET inode=0 WHERE filename='root';
 -- ----------------------------
 -- Table structure for file_block
 -- ----------------------------
