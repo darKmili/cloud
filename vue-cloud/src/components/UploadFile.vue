@@ -143,7 +143,7 @@ export default {
       //读取文件前128 KB数据利用SHA-256生成256位密钥
       var v = await this.readAsBinaryString(filedata, 0, 1024 * 128);
       const sha256Key = await crypto.subtle.digest('SHA-256', v)
-      var fileKey = new Uint8Array(sha256Key).subarray(0, 16);
+      var fileKey = new Uint8Array(new Uint8Array(sha256Key).subarray(0, 16));
       console.log("fileKey:" + fileKey);
 
       // 获取用户随机数
@@ -155,8 +155,9 @@ export default {
 
 
       // 文件名加密
+      let encoder = new TextEncoder();
       var fileName = filedata.name;
-      let data1 = this.stringtoUint8Array(fileName)
+      let data1 = encoder.encode(fileName);//this.stringtoUint8Array(fileName)
       console.log("fileName:" + data1);
       var encryptedMasterKeyHashValue1 = await this.encryptKey(fileKey, clientRandomValue, data1)
       var encryptedData1 = new Uint8Array(encryptedMasterKeyHashValue1)
@@ -168,7 +169,7 @@ export default {
 
       // 上次修改时间
       var Mtime = filedata.lastModifiedDate;
-      var data2 = this.stringtoUint8Array(Mtime.toString())
+      var data2 = encoder.encode(Mtime.toString())
       console.log("Mtime:" + data2);
       var encryptedMasterKeyHashValue2 = await this.encryptKey(fileKey, clientRandomValue, data2)
       var encryptedData2 = new Uint8Array(encryptedMasterKeyHashValue2)

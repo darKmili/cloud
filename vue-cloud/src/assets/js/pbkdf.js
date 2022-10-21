@@ -115,7 +115,7 @@ export async function dec(left128Bits, randomvalue, encryptedMasterKey){
   console.log("解密----1")
   var decryptedMasterKey = new Uint8Array(deKeyBuffer)
   console.log("decryptedMasterKey---" + decryptedMasterKey);
-  return(decryptedMasterKey)
+  return decryptedMasterKey
 }
 
 export function isEmail(emailStr) {

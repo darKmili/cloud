@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author leon
@@ -66,9 +67,15 @@ public class QiniuFileBlockServiceImpl extends BlockServiceImpl implements Initi
         return true;
     }
 
+    /**
+     * 基于七牛云的下载 TODO
+     * @param fileBlockPo
+     * @return
+     * @throws Exception
+     */
     @Override
     public byte[] downloadBlock(FileBlockPo fileBlockPo) throws Exception {
 
-        return super.downloadBlock(fileBlockPo);
+        return "null".getBytes(StandardCharsets.UTF_8);
     }
 }

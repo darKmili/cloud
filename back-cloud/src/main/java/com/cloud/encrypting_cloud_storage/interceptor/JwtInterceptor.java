@@ -43,7 +43,7 @@ public class JwtInterceptor implements HandlerInterceptor {
         String token = request.getHeader("token");
         DecodedJWT decodedJWT = null;
         /**
-         * 验证token有效性
+         * 验证token有效性，代表当前是合法用户
          */
         try {
             decodedJWT = MyJWTUtil.verifyToken(token);
@@ -54,18 +54,18 @@ public class JwtInterceptor implements HandlerInterceptor {
             writer.flush();
             return false;
         }
-        /**
-         * 验证路径有效性
-         */
+//        /**
+//         * 验证路径有效性
+//         */
 
-        String id = String.valueOf(decodedJWT.getClaim("uid").asLong());
-        if (!id.equals(split[2])) {
-            response.setContentType("application/json");
-            PrintWriter writer = response.getWriter();
-            writer.write(JSONObject.toJSONString(ApiResponse.ofStatus(StatusEnum.NO_PERMISSIONS)));
-            writer.flush();
-            return false;
-        }
+//        String id = String.valueOf(decodedJWT.getClaim("uid").asLong());
+//        if (!id.equals(split[2])) {
+//            response.setContentType("application/json");
+//            PrintWriter writer = response.getWriter();
+//            writer.write(JSONObject.toJSONString(ApiResponse.ofStatus(StatusEnum.NO_PERMISSIONS)));
+//            writer.flush();
+//            return false;
+//        }
         return true;
     }
 }

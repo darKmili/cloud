@@ -74,7 +74,7 @@ export default {
       // 防止以前的数据没有清除，影响调试
       localStorage.clear();
 
-      var randomvalue = null;
+      var randomValue = null;
       var verify = null;
       let _this = this;
       // 先验证账号
@@ -95,16 +95,16 @@ export default {
 
         alert("请求后端成功" + JSON.stringify(res))
         if (res.code === 2000) {
-          randomvalue = res.data;
+          randomValue = res.data;
           // sessionStorage只能存储字符串数据，无法直接存储数组类型和JSON对象,TODO关注
           // 可以无需存储
-          sessionStorage.setItem('randomValue', randomvalue)
+          sessionStorage.setItem('randomValue', res.data)
           // 计算256验证哈希
         }
       })
 
 
-      let pbkdf2Key = await pbkdf2Function(_this.ruleForm.pass, randomvalue);
+      let pbkdf2Key = await pbkdf2Function(_this.ruleForm.pass, randomValue);
 
       const rawKey = await crypto.subtle.exportKey('raw', pbkdf2Key);
       const rawKeyArray = new Uint8Array(rawKey)
@@ -156,17 +156,17 @@ export default {
           _this.loading = false
           var  user = res.data
           //获取加密后的主密钥然后解密存储,TODO
-          var encryptedMasterKey = stringtoUint8Array( user.encryptedMasterKey)
-          let randomvalue = stringtoUint8Array( user.clientRandomValue);
+          var encryptedMasterKey = stringtoUint8Array(user.encryptedMasterKey)
+          let randomValueArray = stringtoUint8Array( user.clientRandomValue);
           const left128Bits = stringtoUint8Array(sessionStorage.getItem("left128Bits"));
 
-           // var deKeyBuffer = await decryptKey(left128Bits, randomvalue, encryptedMasterKey)
-          // var decryptedMasterKey = new Uint8Array(deKeyBuffer)
+          // var deKeyBuffer = await dec(left128Bits, randomValueArray, encryptedMasterKey)
+          // var decryptedMasterKey = uint8ArrayToString( new Uint8Array(deKeyBuffer))
           // console.log("decryptedMasterKey---" + decryptedMasterKey);
 
 
           console.log(encryptedMasterKey)
-          console.log(randomvalue)
+          console.log(randomValueArray)
           console.log(left128Bits)
 
           // 将返回的数据全部放到 localStorage 中
@@ -179,6 +179,7 @@ export default {
             localStorage.setItem("verifyKey",user.verifyKey);
             // // 这里应该有存解密好了的主密钥
             localStorage.setItem("encryptedMasterKey",user.encryptedMasterKey);
+            localStorage.setItem("masterKey",decryptedMasterKey);
             localStorage.setItem("curLoadTime",user.curLoadTime);
             localStorage.setItem("lastLoadTime",user.lastLoadTime);
             localStorage.setItem("registerTime",user.registerTime);
@@ -187,12 +188,6 @@ export default {
             localStorage.setItem("token",user.token);
           }
           saveUser(user)
-          // TODO 解密主密钥
-
-
-
-
-
           _this.$alert('登陆成功', '提示', {
             confirmButtonText: '确定',
             callback: action => {
@@ -211,12 +206,13 @@ export default {
 
 
       })
+      //  解密主密钥
       var eKey = stringtoUint8Array(localStorage.getItem("encryptedMasterKey"))
       let ran = stringtoUint8Array( localStorage.getItem("clientRandomValue"));
       var decryptedMasterKey=await dec(left128Bits, ran, eKey)
       localStorage.setItem('masterKey', uint8ArrayToString(decryptedMasterKey))
-      var asterKey=stringtoUint8Array(localStorage.getItem("masterKey"));
-      console.log(asterKey)
+      var masterKey=stringtoUint8Array(localStorage.getItem("masterKey"));
+      console.log("masterKey"+masterKey)
 
     },
     resetForm(ruleForm) {

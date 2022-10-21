@@ -113,26 +113,24 @@ async function encryptlist(tdata) {
   let clientRandomValue = stringtoUint8Array(localStorage.getItem('clientRandomValue'));
   const masterKey = stringtoUint8Array(localStorage.getItem('masterKey'));
   for (var i = 0; i < tdata.length; i++) {
-
+    var encryptedfileKey = stringtoUint8Array(tdata[i].fileKey)
+    var fileKey = await dec(masterKey, clientRandomValue, encryptedfileKey)
+    var encryptedfilename = stringtoUint8Array(tdata[i].filename)
+    var encryptedmtime = stringtoUint8Array(tdata[i].mtime)
+    console.log(encryptedfilename)
+    console.log(encryptedmtime)
+    console.log(fileKey)
+    //文件名解密出问题 TODO
+    var filename = await dec(fileKey, clientRandomValue, encryptedfilename)
+    console.log("文件名：" + filename)
+    tdata[i].filename = new TextDecoder().decode(filename);
+    var mtime = await dec(fileKey, clientRandomValue, encryptedmtime)
+    console.log("mtime：" + mtime)
+    let mtimeDate= new Date(new TextDecoder().decode(mtime));
+    tdata[i].mtime=dateToString(mtimeDate)
 
     if (tdata[i].type === "DIR") {
       tdata[i].size = '-'
-    } else {
-      var encryptedfileKey = stringtoUint8Array(tdata[i].fileKey)
-      var fileKey = await dec(masterKey, clientRandomValue, encryptedfileKey)
-      var encryptedfilename = stringtoUint8Array(tdata[i].filename)
-      var encryptedmtime = stringtoUint8Array(tdata[i].mtime)
-      console.log(encryptedfilename)
-      console.log(encryptedmtime)
-      console.log(fileKey)
-      //文件名解密出问题 TODO
-      // var filename = await dec(fileKey, clientRandomValue, encryptedfilename)
-      // console.log("文件名：" + filename)
-      // tdata[i].filename = uint8ArrayToString(filename)
-      //     var mtime = await dec(fileKey, clientRandomValue, encryptedmtime)
-      //     console.log("mtime：" + mtime)
-      //     tdata[i].mtime=dateToString(uint8ArrayToString(mtime).toDate())
-      // tdata[i].size = showfilesize(tdata[i].size)
     }
 
   }
@@ -209,24 +207,26 @@ export default {
         }
       })
     },
-    // 新增文件
+    // 新增文件夹
     async newFolder() {
+      let textEncoder = new TextEncoder();
       this.userId = localStorage.getItem("uid")
       let clientRandomValue = stringtoUint8Array(localStorage.getItem('clientRandomValue'));
       const masterKey = stringtoUint8Array(localStorage.getItem('masterKey'));
       let name = this.input
       console.log(name)
       for (var i = 0; i < this.tableData.length; i++) {
-        if (this.tableData[i].filename == name) {
+        if (this.tableData[i].filename === name) {
           name = name + '.1'
         }
       }
-      //文件名，创建时间加密发送
-
+      //文件名，创建时间等加密发送
+      // 生成文件夹密钥
       var folderKey = new Uint8Array(2 ** 4);
-
-      let data1 = stringtoUint8Array(name)
-      console.log("fileName:" + data1);
+      window.crypto.getRandomValues(folderKey)
+      // let data1 = stringtoUint8Array(name)
+      let data1 = textEncoder.encode(name)
+      // console.log("fileName:" + data1);
       var encryptedMasterKeyHashValue1 = await encryptKey(folderKey, clientRandomValue, data1)
       var encryptedData1 = new Uint8Array(encryptedMasterKeyHashValue1)
       console.log("encryptedData1:" + encryptedData1)

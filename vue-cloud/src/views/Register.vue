@@ -1,7 +1,7 @@
 <template>
   <div class="main">
 
-    <el-card class="box-card" v-loading="loading" :element-loading-text="loading_text">
+    <el-card class="box-card" v-loading="loading" :element-loading-text="ruleForm.loading_text">
       <div slot="header" class="clearfix">
         <span>注册</span>
         <el-button style="float: right; padding: 3px 0" type="text" @click="login">已经有账号？去登陆

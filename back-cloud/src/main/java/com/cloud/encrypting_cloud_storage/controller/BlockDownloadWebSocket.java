@@ -1,5 +1,6 @@
 package com.cloud.encrypting_cloud_storage.controller;
 
+import cn.hutool.core.util.ArrayUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.cloud.encrypting_cloud_storage.models.po.FileBlockPo;
 import com.cloud.encrypting_cloud_storage.models.po.FilePo;
@@ -19,6 +20,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -82,7 +84,7 @@ public class BlockDownloadWebSocket {
     }
 
     @Autowired
-    @Qualifier(value = "cephFileBlockService")
+    @Qualifier(value = "QiniuUploadService")
     public void setBlockService(BlockService blockService) {
         BlockDownloadWebSocket.blockService = blockService;
     }
@@ -125,20 +127,20 @@ public class BlockDownloadWebSocket {
         } else {
             allBlock = filePo.getFileBlocks();
         }
-        List<byte[]> data = new ArrayList<>();
         for (FileBlockPo fileBlockPo : allBlock) {
             try {
-                data.add(blockService.downloadBlock(fileBlockPo));
+                final byte[] downloadBlock = blockService.downloadBlock(fileBlockPo);
+                fileBlockPo.setParentFilePo(null);
+                fileBlockPo.setData(downloadBlock);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
         try {
-            this.sendMessage(JSONObject.toJSONString(data));
+            this.sendMessage(JSONObject.toJSONString(allBlock));
         } catch (IOException e) {
             e.printStackTrace();
         }
-
 
     }
 
@@ -181,6 +183,8 @@ public class BlockDownloadWebSocket {
     public void sendMessage(String message) throws IOException {
         this.session.getBasicRemote().sendText(message);
     }
+
+
 
     /**
      * 服务器主动提推送消息
