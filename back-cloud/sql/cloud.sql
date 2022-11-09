@@ -46,9 +46,6 @@ CREATE TABLE `file`  (
 -- Records of file
 -- ----------------------------
 INSERT INTO `file` VALUES (0, 'root', '2022-05-29 22:19:34.951910', NULL, NULL, NULL, NULL, NULL, 'UPLOADED', 'DIR', NULL, NULL, NULL);
-INSERT INTO `file` VALUES (27, 'ö×_dÓ|òÎEU¤¬h', NULL, NULL, NULL, '|ïO3\\|é7\rë/¶Ã>Hº6ëÊÔéö¡äÿ¸ÑÔ<ë+T', 0, 1097, 'UPLOADING', 'FILE', 4, 1, 'ñß]ë»ÑíQ8±¥ ½¢?BI¨G<¢x');
-INSERT INTO `file` VALUES (29, '\0¶	·ÄîrvÊpYr~', NULL, NULL, NULL, '#ab~#kWôiÉJ	ÃÅ/jE²Òüvù}5î¦oujú\rcqGø', 0, 0, 'UPLOADED', 'DIR', 3, NULL, 'q8gßíÆM×\ZÑ-ãZö	f ´_ó±ÕÏ');
-INSERT INTO `file` VALUES (30, '³È5ß3:|¡;÷¡W', NULL, NULL, NULL, '.^:ðf#QoÑÌ25Á^Üñ	ûC>mEtDh &ÊÚ×Zr§GÎKB', 29, 1097, 'UPLOADING', 'FILE', 3, 1, 'ýØ*Gvc;ÿå©¬Zb½V1ì>uÆÀ;µd ¢');
 
 SET SQL_SAFE_UPDATES = 0;
 Update `file` SET inode=0 WHERE filename='root';
@@ -71,8 +68,7 @@ CREATE TABLE `file_block`  (
 -- ----------------------------
 -- Records of file_block
 -- ----------------------------
-INSERT INTO `file_block` VALUES (18, 'axdXIgR4FwfCqMOHw6XCvMKvw6rCjALCvyHDiVo=', 0, 1097, 27, NULL);
-INSERT INTO `file_block` VALUES (20, 'axdXIgR4FwfCqMOHw6XCvMKvw6rCjALCvyHDiVo=', 0, 1097, 30, NULL);
+
 
 -- ----------------------------
 -- Table structure for user
@@ -97,7 +93,5 @@ CREATE TABLE `user`  (
 -- ----------------------------
 -- Records of user
 -- ----------------------------
-INSERT INTO `user` VALUES (3, '123@qq.com', '6wG96z75iT', NULL, ':¥7àÊÛr³&§ ÒÇ', 'Ô%ô°÷ÃýflJE¯nC³HU¨úaóhÁFÉ°Ð', '¢íØ;Ñ`\0èÊ^- P?´»Þ	¯R0¨±0þ/', '2022-06-01 16:32:54.702000', NULL, '2022-06-01 16:32:54.702000', 0, 10737418240);
-INSERT INTO `user` VALUES (4, '122@qq.com', '7V5IIPl2kf', NULL, 'cidüòrúyÜ+¹¢', 'þSý8*æ+üÛ<7îûÚ»ÏÇ5nêÆø©Å', 'Ô\0!c¯Í\"ß%¢q0B#Æ .- 0¤/àL', '2022-06-01 16:39:50.512000', NULL, '2022-06-01 16:39:50.512000', 0, 10737418240);
 
 SET FOREIGN_KEY_CHECKS = 1;
