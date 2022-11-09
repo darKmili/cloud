@@ -116,7 +116,10 @@ async function encryptlist(tdata) {
   const masterKey = stringtoUint8Array(localStorage.getItem('masterKey'));
   for (var i = 0; i < tdata.length; i++) {
     var encryptedfileKey = stringtoUint8Array(tdata[i].fileKey)
+    // 解密文件密钥
     var fileKey = await dec(masterKey, clientRandomValue, encryptedfileKey)
+    tdata[i].fileKey = uint8ArrayToString(new Uint8Array(fileKey))
+
     var encryptedfilename = stringtoUint8Array(tdata[i].filename)
     var encryptedmtime = stringtoUint8Array(tdata[i].mtime)
     console.log(encryptedfilename)
@@ -130,6 +133,7 @@ async function encryptlist(tdata) {
     console.log("mtime：" + mtime)
     let mtimeDate = new Date(new TextDecoder().decode(mtime));
     tdata[i].mtime = dateToString(mtimeDate)
+
 
   }
   return tdata

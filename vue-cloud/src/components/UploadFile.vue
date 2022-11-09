@@ -267,7 +267,7 @@ export default {
             // 加密数据 TODO
             var blockData =  await _this.encryptKey(fileKey,clientRandomValue,arrayBuffer)
             // 发送数据
-            _this.socket.send(new Uint8Array(blockData))
+            _this.socket.send(new Int8Array(blockData))
           }
 
 

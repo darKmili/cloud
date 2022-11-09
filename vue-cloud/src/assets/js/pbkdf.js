@@ -103,6 +103,7 @@ export async function decryptKey(keyArr, clientRandomValue, theKeyToDecrypt) {
     "AES-CBC",
     true,
     ["encrypt", "decrypt"]);
+  console.log("导入密钥")
 
   const decryptedData = await crypto.subtle.decrypt(params, aesKey, theKeyToDecrypt);
   return decryptedData

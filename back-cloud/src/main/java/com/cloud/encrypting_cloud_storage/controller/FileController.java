@@ -78,7 +78,9 @@ public class FileController extends BaseController{
 
     private void deleteFileBlock(FilePo filePo){
         if (filePo.getType()==FileType.FILE){
-            fileBlockRepository.deleteAll(filePo.getFileBlocks());
+            for (FileBlockPo fileBlock : filePo.getFileBlocks()) {
+                blockService.deleteBlock(fileBlock);
+            }
 
         }else {
             for (FilePo childrenFile : filePo.getChildrenFiles()) {
