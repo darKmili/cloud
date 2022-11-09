@@ -31,7 +31,8 @@ export default {
   methods: {
     loginout() {
       localStorage.setItem('name', '')
-      this.$router.push({path: '/'})
+
+      this.$router.push("/");
     }
   }
 }
