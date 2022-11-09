@@ -69,11 +69,11 @@ qiniu:
   ## 此处填写你自己的七牛云 域名
   prefix: raxes0mqf.bkt.clouddn.com
 ceph:
-  accessKey: HXYN0M01L86QP3NJLSCK
-  secretKey: EUR3LE0HpV7vCwTMORawH5HNpPCJ2dnBwfIy2SiJ
-  bucket: my-first-s3-bucket
+  accessKey: GTAYXD3UFL6KKPSU3T1F
+  secretKey: SvSp8mxh2XiiKZnc8Je6PuyCIxOBkn6xZWOLrBgd
+  bucket: cloud-bucket
   ## 填写域名或者IP
-  host: 192.168.1.112:80
+  host: 10.108.14.53:80
 
 jwt:
   #token返回头部

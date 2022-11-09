@@ -92,7 +92,7 @@ public class BlockWebsocket {
     }
 
     @Autowired
-    @Qualifier(value = "QiniuUploadService")
+    @Qualifier(value = "cephFileBlockService")
     public void setBlockService(BlockService blockService) {
         BlockWebsocket.blockService = blockService;
     }

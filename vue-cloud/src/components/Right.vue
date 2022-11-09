@@ -110,6 +110,8 @@ import {download} from "../assets/js/download";
 
 //解密列表数据1
 async function encryptlist(tdata) {
+
+
   let clientRandomValue = stringtoUint8Array(localStorage.getItem('clientRandomValue'));
   const masterKey = stringtoUint8Array(localStorage.getItem('masterKey'));
   for (var i = 0; i < tdata.length; i++) {
@@ -126,12 +128,8 @@ async function encryptlist(tdata) {
     tdata[i].filename = new TextDecoder().decode(filename);
     var mtime = await dec(fileKey, clientRandomValue, encryptedmtime)
     console.log("mtime：" + mtime)
-    let mtimeDate= new Date(new TextDecoder().decode(mtime));
-    tdata[i].mtime=dateToString(mtimeDate)
-
-    if (tdata[i].type === "DIR") {
-      tdata[i].size = '-'
-    }
+    let mtimeDate = new Date(new TextDecoder().decode(mtime));
+    tdata[i].mtime = dateToString(mtimeDate)
 
   }
   return tdata
@@ -225,11 +223,11 @@ export default {
       var folderKey = new Uint8Array(2 ** 4);
       window.crypto.getRandomValues(folderKey)
       // let data1 = stringtoUint8Array(name)
-      let data1 = textEncoder.encode(name)
-      // console.log("fileName:" + data1);
-      var encryptedMasterKeyHashValue1 = await encryptKey(folderKey, clientRandomValue, data1)
-      var encryptedData1 = new Uint8Array(encryptedMasterKeyHashValue1)
-      console.log("encryptedData1:" + encryptedData1)
+      // let data1 = textEncoder.encode(name)
+      // // console.log("fileName:" + data1);
+      // var encryptedMasterKeyHashValue1 = await encryptKey(folderKey, clientRandomValue, data1)
+      // var encryptedData1 = new Uint8Array(encryptedMasterKeyHashValue1)
+      // console.log("encryptedData1:" + encryptedData1)
 
       var Mtime = new Date()
       var data2 = stringtoUint8Array(Mtime.toString())
@@ -245,7 +243,7 @@ export default {
       //发送后端加密文件名，mtime，用主密钥加密的密钥 TODO
 
       await request.post("/files/" + this.userId + "/" + this.curInode, JSON.stringify({
-          "filename": uint8ArrayToString(encryptedData1),
+          "filename": name,
           "size": 0,
           "mtime": uint8ArrayToString(encryptedData2),
           "fileKey": uint8ArrayToString(encryptedkey),

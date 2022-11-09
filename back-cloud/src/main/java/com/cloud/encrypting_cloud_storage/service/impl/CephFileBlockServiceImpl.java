@@ -18,9 +18,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 
 /**
@@ -49,6 +47,13 @@ public class CephFileBlockServiceImpl extends BlockServiceImpl {
     @Override
     public boolean uploadBlock(FileBlockPo fileBlockPo) throws Exception {
         List<Bucket> buckets = amazonS3.listBuckets();
+        Set<String> buckets_set = new HashSet<>();
+        for (Bucket bucket : buckets) {
+            buckets_set.add(bucket.getName());
+        }
+        if (!buckets_set.contains(bucketName)){
+            amazonS3.createBucket(bucketName);
+        }
         InputStream inputStream = new ByteArrayInputStream(fileBlockPo.getData());
         PutObjectResult putObjectResult = amazonS3.putObject(bucketName, fileBlockPo.getFingerprint(), inputStream, null);
         return putObjectResult.isRequesterCharged();
@@ -57,12 +62,7 @@ public class CephFileBlockServiceImpl extends BlockServiceImpl {
     @Override
     public byte[] downloadBlock(FileBlockPo fileBlockPo) throws Exception {
         String fileName = fileBlockPo.getFingerprint();
-//        S3Object object;
-//        if (amazonS3.doesObjectExist(bucketName, fileName)) {
-//            object = amazonS3.getObject(bucketName, fileName);
-//        } else {
-//            throw new ApiException(404,"文件不存在");
-//        }
+
         S3Object object = amazonS3.getObject(bucketName, fileName);
         log.debug("Storage s3 api, get object result :{}", object);
 
@@ -118,5 +118,10 @@ public class CephFileBlockServiceImpl extends BlockServiceImpl {
             log.warn("Storage s3 api, bucketName is not exist, create it: " + bucketName);
             amazonS3.createBucket(bucketName);
         }
+    }
+
+    @Override
+    public void deleteBlock(FileBlockPo fileBlockPo) {
+        amazonS3.deleteObject(bucketName,fileBlockPo.getFingerprint());
     }
 }

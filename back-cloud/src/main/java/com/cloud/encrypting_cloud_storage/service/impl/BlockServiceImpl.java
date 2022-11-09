@@ -1,5 +1,6 @@
 package com.cloud.encrypting_cloud_storage.service.impl;
 
+import com.amazonaws.services.s3.AmazonS3Client;
 import com.cloud.encrypting_cloud_storage.models.po.FileBlockPo;
 import com.cloud.encrypting_cloud_storage.models.po.FilePo;
 import com.cloud.encrypting_cloud_storage.repository.FileBlockRepository;
@@ -20,6 +21,10 @@ import java.util.Set;
 public class BlockServiceImpl implements BlockService {
     @Autowired
     FileBlockRepository fileBlockRepository;
+
+
+
+
     @Override
     public boolean uploadBlock(FileBlockPo fileBlockPo) throws Exception {
         return false;
@@ -39,5 +44,11 @@ public class BlockServiceImpl implements BlockService {
     public Set<FileBlockPo> findFileAllBlock(FilePo filePo) {
         return fileBlockRepository.findByParentFilePo(filePo);
     }
+
+    @Override
+    public void deleteBlock(FileBlockPo fileBlockPo) {
+
+    }
+
 
 }

@@ -41,4 +41,6 @@ public interface BlockService {
      * @return
      */
     Set<FileBlockPo> findFileAllBlock(FilePo filePo);
+
+    void deleteBlock(FileBlockPo fileBlockPo);
 }

@@ -1,6 +1,7 @@
 package com.cloud.encrypting_cloud_storage.service.impl;
 
 import com.cloud.encrypting_cloud_storage.models.po.FileBlockPo;
+import com.qiniu.http.Client;
 import com.qiniu.http.Response;
 import com.qiniu.storage.UploadManager;
 import com.qiniu.util.Auth;
@@ -28,6 +29,9 @@ public class QiniuFileBlockServiceImpl extends BlockServiceImpl implements Initi
     private final UploadManager uploadManager;
     @Value("${qiniu.bucket}")
     private String bucket;
+
+    @Autowired
+    private Client client;
 
     private StringMap putPolicy;
 
@@ -76,6 +80,7 @@ public class QiniuFileBlockServiceImpl extends BlockServiceImpl implements Initi
     @Override
     public byte[] downloadBlock(FileBlockPo fileBlockPo) throws Exception {
 
-        return "null".getBytes(StandardCharsets.UTF_8);
+        final Response response = client.get(fileBlockPo.getFingerprint());
+        return response.body();
     }
 }

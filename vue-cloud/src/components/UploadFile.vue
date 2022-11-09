@@ -157,12 +157,12 @@ export default {
       // 文件名加密
       let encoder = new TextEncoder();
       var fileName = filedata.name;
-      let data1 = encoder.encode(fileName);//this.stringtoUint8Array(fileName)
+      let data1 = encoder.encode(fileName);
       console.log("fileName:" + data1);
       var encryptedMasterKeyHashValue1 = await this.encryptKey(fileKey, clientRandomValue, data1)
       var encryptedData1 = new Uint8Array(encryptedMasterKeyHashValue1)
       console.log("encryptedData1:" + encryptedData1)
-      var c=await dec(fileKey, clientRandomValue, encryptedData1)
+      // var c=await dec(fileKey, clientRandomValue, encryptedData1)
 
 
       console.log(clientRandomValue)
@@ -210,7 +210,7 @@ export default {
       this.socket.send(JSON.stringify(fileJson));
 
       //此处为文件上传的核心中的核心，涉及分块上传
-      this.socket.onmessage = function (msg) {
+      this.socket.onmessage =  function (msg) {
         console.log(msg.data)
         var tip = JSON.parse(msg.data)
 
@@ -261,17 +261,22 @@ export default {
           var block = filedata.slice(start, end);
           var reader = new FileReader();
           reader.readAsArrayBuffer(block);
-          reader.onload = function loaded(evt) {
-            var arrayBuffer = evt.target.result;
-            _this.socket.send(arrayBuffer)
+
+          reader.onload = async function loaded(evt) {
+            var  arrayBuffer = evt.target.result
+            // 加密数据 TODO
+            var blockData =  await _this.encryptKey(fileKey,clientRandomValue,arrayBuffer)
+            // 发送数据
+            _this.socket.send(new Uint8Array(blockData))
           }
+
+
+
 
         } else if (tip.opt === 'over') {
           console.log("上传成功")
           _this.socket.send(JSON.stringify({opt: "over"}))
         }
-
-
       }
 
       this.socket.onclose = function () {

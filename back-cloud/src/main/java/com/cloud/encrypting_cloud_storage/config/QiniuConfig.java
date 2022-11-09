@@ -1,9 +1,11 @@
 package com.cloud.encrypting_cloud_storage.config;
 
+import com.qiniu.http.Client;
 import com.qiniu.storage.BucketManager;
 import com.qiniu.storage.Region;
 import com.qiniu.storage.UploadManager;
 import com.qiniu.util.Auth;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,6 +21,8 @@ public class QiniuConfig {
     private String accessKey;
     @Value(("${qiniu.secretKey}"))
     private String secretKey;
+
+
 
     /**
      * 配置，自动配置区域
@@ -51,4 +55,11 @@ public class QiniuConfig {
     public UploadManager uploadManager() {
         return new UploadManager(configuration());
     }
+
+    @Bean
+    public Client client(){
+        return new Client(configuration());
+    }
+
+
 }

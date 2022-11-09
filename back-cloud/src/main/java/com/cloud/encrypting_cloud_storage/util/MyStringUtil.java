@@ -40,4 +40,15 @@ public class MyStringUtil {
     }
 
 
+
+    public static String byteToString(byte[] data){
+        int len = data.length;
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < data.length; i++) {
+            sb.append(data[i]);
+        }
+        return sb.toString();
+    }
+
+
 }

@@ -1,14 +1,22 @@
 package com.cloud.encrypting_cloud_storage.controller;
 
+import com.cloud.encrypting_cloud_storage.enums.FileType;
 import com.cloud.encrypting_cloud_storage.enums.StatusEnum;
 import com.cloud.encrypting_cloud_storage.models.ApiResponse;
+import com.cloud.encrypting_cloud_storage.models.po.FileBlockPo;
 import com.cloud.encrypting_cloud_storage.models.po.FilePo;
 import com.cloud.encrypting_cloud_storage.models.po.UserPo;
+import com.cloud.encrypting_cloud_storage.repository.FileBlockRepository;
+import com.cloud.encrypting_cloud_storage.repository.FileRepository;
+import com.cloud.encrypting_cloud_storage.service.BlockService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created with IntelliJ IDEA.
@@ -22,6 +30,19 @@ import java.util.List;
 @RequestMapping("/files/{userId}")
 @Api(tags = "文件控制器", value = "文件管理")
 public class FileController extends BaseController{
+
+    @Autowired
+    @Qualifier("cephFileBlockService")
+    BlockService blockService;
+
+    @Autowired
+    FileBlockRepository fileBlockRepository;
+
+    @Autowired
+    FileRepository fileRepository;
+
+
+
     @GetMapping
     @ApiOperation(value = "获取用户根目录及目录下的文件，采用递归方式")
     public ApiResponse getRoot(@PathVariable("userId") Long userId){
@@ -47,9 +68,23 @@ public class FileController extends BaseController{
     @DeleteMapping("/{dirInode}")
     @ApiOperation(value = "删除目录，以及目录下的文件，以及文件对应的文件块元数据")
     public ApiResponse deleteDir(@PathVariable("userId") Long userId,@PathVariable("dirInode") Long dirInode) {
-        fileService.deleteByInodeAndUser(dirInode,userId);
+        FilePo file = fileService.findFileByInodeAndUserId(dirInode, userId);
+        deleteFileBlock(file);
+        fileRepository.delete(file);
         // TODO 删除目录，以及目录下的所有文件块缓存，如果文件块缓存量为0，还需要清除具体的数据
         return ApiResponse.ofSuccess();
+    }
+
+
+    private void deleteFileBlock(FilePo filePo){
+        if (filePo.getType()==FileType.FILE){
+            fileBlockRepository.deleteAll(filePo.getFileBlocks());
+
+        }else {
+            for (FilePo childrenFile : filePo.getChildrenFiles()) {
+                deleteFileBlock(childrenFile);
+            }
+        }
     }
 
     /**

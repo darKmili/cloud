@@ -90,7 +90,7 @@ export async function encryptKey(keyArr, clientRandomValue, theKeyToEnc) {
   return encryptedData
 }
 
-async function decryptKey(keyArr, clientRandomValue, theKeyToDecrypt) {
+export async function decryptKey(keyArr, clientRandomValue, theKeyToDecrypt) {
   const params = {
     name: "AES-CBC",
     iv: clientRandomValue,

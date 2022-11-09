@@ -4,8 +4,10 @@ import cn.hutool.core.util.ArrayUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.cloud.encrypting_cloud_storage.models.po.FileBlockPo;
 import com.cloud.encrypting_cloud_storage.models.po.FilePo;
+import com.cloud.encrypting_cloud_storage.models.vo.BlockVo;
 import com.cloud.encrypting_cloud_storage.service.BlockService;
 import com.cloud.encrypting_cloud_storage.service.FileService;
+import com.cloud.encrypting_cloud_storage.util.MyStringUtil;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,10 +21,8 @@ import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -84,7 +84,7 @@ public class BlockDownloadWebSocket {
     }
 
     @Autowired
-    @Qualifier(value = "QiniuUploadService")
+    @Qualifier(value = "cephFileBlockService")
     public void setBlockService(BlockService blockService) {
         BlockDownloadWebSocket.blockService = blockService;
     }
@@ -127,17 +127,28 @@ public class BlockDownloadWebSocket {
         } else {
             allBlock = filePo.getFileBlocks();
         }
+
+        Set<BlockVo> blockVos = new HashSet<>();
+        byte[][] res =new byte[allBlock.size()][];
         for (FileBlockPo fileBlockPo : allBlock) {
             try {
                 final byte[] downloadBlock = blockService.downloadBlock(fileBlockPo);
-                fileBlockPo.setParentFilePo(null);
-                fileBlockPo.setData(downloadBlock);
+                res[fileBlockPo.getIdx()] = downloadBlock;
+//                final BlockVo blockVo = new BlockVo();
+//                blockVo.setFingerprint(fileBlockPo.getFingerprint());
+//                blockVo.setIdx(fileBlockPo.getIdx());
+//                blockVo.setSize(fileBlockPo.getSize());
+//                blockVo.setData(new String(downloadBlock));
+//                blockVos.add(blockVo);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
         try {
-            this.sendMessage(JSONObject.toJSONString(allBlock));
+            for (int i = 0; i < res.length; i++) {
+                this.sendMessage(res[i]);
+            }
+//            this.sendMessage(JSONObject.toJSONString(blockVos));
         } catch (IOException e) {
             e.printStackTrace();
         }

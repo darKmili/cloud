@@ -1,7 +1,9 @@
 package com.cloud.encrypting_cloud_storage.models.vo;
 
+import com.cloud.encrypting_cloud_storage.models.po.FilePo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -14,9 +16,20 @@ import lombok.RequiredArgsConstructor;
  */
 @Data
 @AllArgsConstructor
-@RequiredArgsConstructor
+@NoArgsConstructor
 public class BlockVo {
     private String opt;
 
     private Integer next;
+    private Long blockInode;
+    private String fingerprint;
+    private Integer idx;
+    private Long size;
+    private FilePo parentFilePo;
+    private String data;
+
+    public BlockVo(String opt,Integer next){
+        this.opt = opt;
+        this.next = next;
+    }
 }
