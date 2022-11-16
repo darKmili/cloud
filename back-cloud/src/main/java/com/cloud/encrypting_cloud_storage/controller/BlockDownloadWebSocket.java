@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.cloud.encrypting_cloud_storage.models.po.FileBlockPo;
 import com.cloud.encrypting_cloud_storage.models.po.FilePo;
 import com.cloud.encrypting_cloud_storage.models.vo.BlockVo;
+import com.cloud.encrypting_cloud_storage.models.vo.FileVo;
 import com.cloud.encrypting_cloud_storage.service.BlockService;
 import com.cloud.encrypting_cloud_storage.service.FileService;
 import com.cloud.encrypting_cloud_storage.util.MyStringUtil;
@@ -63,7 +64,7 @@ public class BlockDownloadWebSocket {
     /**
      * 当前块的情况
      */
-    private FileBlockPo blockPo;
+    private Map<Integer,FileBlockPo> allBlockMap;
 
 
     /**
@@ -114,44 +115,39 @@ public class BlockDownloadWebSocket {
     @OnMessage
     public void onMessage(String message, @PathParam("userId") String userId) {
         log.info("字符串消息" + message);
+
+        FileVo fileVo = null;
         // 前端传进来一个字符串信息
-        FilePo filePo = null;
         try {
-            filePo = JSONObject.parseObject(message, FilePo.class);
-        }catch (Exception e){
+            fileVo = JSONObject.parseObject(message, FileVo.class);
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        Set<FileBlockPo> allBlock = null;
-        if (filePo.getFileBlocks() == null) {
-            allBlock = blockService.findFileAllBlock(filePo);
-        } else {
-            allBlock = filePo.getFileBlocks();
+        if (filePo == null) {
+           filePo =fileService.findFileByInodeAndUserId(fileVo.getInode(), Long.valueOf(userId));
+            filePo.setInode(fileVo.getInode());
         }
 
-        Set<BlockVo> blockVos = new HashSet<>();
-        byte[][] res =new byte[allBlock.size()][];
-        for (FileBlockPo fileBlockPo : allBlock) {
-            try {
-                final byte[] downloadBlock = blockService.downloadBlock(fileBlockPo);
-                res[fileBlockPo.getIdx()] = downloadBlock;
-//                final BlockVo blockVo = new BlockVo();
-//                blockVo.setFingerprint(fileBlockPo.getFingerprint());
-//                blockVo.setIdx(fileBlockPo.getIdx());
-//                blockVo.setSize(fileBlockPo.getSize());
-//                blockVo.setData(new String(downloadBlock));
-//                blockVos.add(blockVo);
-            } catch (Exception e) {
-                e.printStackTrace();
+        if (allBlockMap == null) {
+            allBlockMap = new HashMap<>();
+            Set<FileBlockPo> fileAllBlock = blockService.findFileAllBlock(filePo);
+            for (FileBlockPo fileBlockPo : fileAllBlock) {
+                allBlockMap.put(fileBlockPo.getIdx(),fileBlockPo);
             }
         }
         try {
-            for (int i = 0; i < res.length; i++) {
-                this.sendMessage(res[i]);
+            assert fileVo != null;
+            if (allBlockMap.containsKey( fileVo.getIndex())){
+                byte[] downloadBlock = blockService.downloadBlock(allBlockMap.get(fileVo.getIndex()));
+                this.sendMessage(downloadBlock);
+            }else {
+                this.sendMessage(new byte[]{1,2,3,4});
             }
-//            this.sendMessage(JSONObject.toJSONString(blockVos));
-        } catch (IOException e) {
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
+
 
     }
 
@@ -194,7 +190,6 @@ public class BlockDownloadWebSocket {
     public void sendMessage(String message) throws IOException {
         this.session.getBasicRemote().sendText(message);
     }
-
 
 
     /**

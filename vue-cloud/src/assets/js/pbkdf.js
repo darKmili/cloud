@@ -152,7 +152,7 @@ function readAsBinaryString(file) {
     reader.readAsBinaryString(file);
     reader.onload = (e) => {
       var num = e.target.result
-      v1 = stringtoUint8Array(num);
+      var v1 = stringtoUint8Array(num);
       console.log(v1)
       //读取文件前128KB
       var v2 = new Uint8Array(128 * 1024)

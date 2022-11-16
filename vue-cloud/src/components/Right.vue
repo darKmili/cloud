@@ -109,16 +109,22 @@ import UploadFile from "./UploadFile";
 import {download} from "../assets/js/download";
 
 //解密列表数据1
-async function encryptlist(tdata) {
+async function encryptlist(tdata,_this) {
+
+  if (tdata == null) {
+    _this.$router.push("/");
+    alert("请登录")
+    return null
+  }
 
 
   let clientRandomValue = stringtoUint8Array(localStorage.getItem('clientRandomValue'));
   const masterKey = stringtoUint8Array(localStorage.getItem('masterKey'));
   for (var i = 0; i < tdata.length; i++) {
-    if (tdata[i].type==='DIR'){
-      tdata[i].size ='-'
-    }else {
-      tdata[i].size=tdata[i].size+'B'
+    if (tdata[i].type === 'DIR') {
+      tdata[i].size = '-'
+    } else {
+      tdata[i].size = tdata[i].size + 'B'
     }
     var encryptedfileKey = stringtoUint8Array(tdata[i].fileKey)
     // 解密文件密钥
@@ -191,7 +197,7 @@ export default {
       // 默认curInode 是 0
       this.curInode = 0
 
-      _this.tableData = await encryptlist(tdata)
+      _this.tableData = await encryptlist(tdata,_this)
       _this.tableData = tdata
 
     },
@@ -233,7 +239,7 @@ export default {
       var folderKey = new Uint8Array(2 ** 4);
       window.crypto.getRandomValues(folderKey)
 
-      var folderKeyEd = await encryptKey(masterKey,clientRandomValue,folderKey)
+      var folderKeyEd = await encryptKey(masterKey, clientRandomValue, folderKey)
       // let data1 = stringtoUint8Array(name)
       // let data1 = textEncoder.encode(name)
       // // console.log("fileName:" + data1);
@@ -248,26 +254,26 @@ export default {
       var encryptedData2 = new Uint8Array(encryptedMasterKeyHashValue2)
       console.log("encryptedData2:" + encryptedData2)
       let encodeName = textEncoder.encode(name);
-      var filenameEd = await encryptKey(folderKey,clientRandomValue,encodeName)
+      var filenameEd = await encryptKey(folderKey, clientRandomValue, encodeName)
 
       //发送后端加密文件名，mtime，用主密钥加密的密钥 TODO
       await request.post("/files/" + this.userId + "/" + this.curInode, JSON.stringify({
           "filename": uint8ArrayToString(new Uint8Array(filenameEd)),
           "size": 0,
           "mtime": uint8ArrayToString(encryptedData2),
-          "fileKey": uint8ArrayToString(new Uint8Array( folderKeyEd)),
+          "fileKey": uint8ArrayToString(new Uint8Array(folderKeyEd)),
           "type": "DIR",
           "state": "UPLOADED",
         })
-      ).then( async function (res) {
+      ).then(async function (res) {
 
         if (res.code === 2000) {
-          var item  = res.data
+          var item = res.data
 
-          if (item.type==='DIR'){
-            item.size ='-'
-          }else {
-            item.size=item.size+'B'
+          if (item.type === 'DIR') {
+            item.size = '-'
+          } else {
+            item.size = item.size + 'B'
           }
           var encryptedfileKey = stringtoUint8Array(item.fileKey)
           // 解密文件密钥
@@ -300,8 +306,8 @@ export default {
     async clickFolder(row) {
       if (row.type === "DIR") {
         this.tableData = []
-        for(var i=0;i<row.childrenFiles.length;i++){
-          this.tableData.concat(  await encryptlist(row.childrenFiles[i]))
+        for (var i = 0; i < row.childrenFiles.length; i++) {
+          this.tableData.concat(await encryptlist(row.childrenFiles[i],this))
         }
 
         this.breadlist.push({"name": row.filename, "inode": row.inode, "parent_inode": this.curInode})

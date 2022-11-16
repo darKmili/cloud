@@ -140,7 +140,7 @@ export default {
 
 
       //先向后台传输文件名
-      //读取文件前128 KB数据利用SHA-256生成256位密钥
+      //读取文件前128 KB数据利用SHA-256生成256位文件密钥
       var v = await this.readAsBinaryString(filedata, 0, 1024 * 128);
       const sha256Key = await crypto.subtle.digest('SHA-256', v)
       var fileKey = new Uint8Array(new Uint8Array(sha256Key).subarray(0, 16));
@@ -264,7 +264,7 @@ export default {
 
           reader.onload = async function loaded(evt) {
             var  arrayBuffer = evt.target.result
-            // 加密数据 TODO
+            // 加密数据
             var blockData =  await _this.encryptKey(fileKey,clientRandomValue,arrayBuffer)
             // 发送数据
             _this.socket.send(new Int8Array(blockData))
