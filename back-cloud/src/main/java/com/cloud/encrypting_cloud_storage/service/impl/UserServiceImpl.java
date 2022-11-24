@@ -75,9 +75,6 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UserPo initUser(UserPo userPo) {
-        // 保存多对一的多方要先保存
-
-
         userPo.setName(MyStringUtil.getStringRandom(10));
         userPo.setRegisterTime(Timestamp.valueOf(LocalDateTime.now()));
         userPo.setCurLoadTime(userPo.getRegisterTime());
@@ -86,12 +83,12 @@ public class UserServiceImpl implements UserService {
         userPo.setUsedCapacity(0L);
         UserPo save = userRepository.save(userPo);
 
-        FilePo filePo = new FilePo();
-        filePo.setType(FileType.DIR);
-        filePo.setUser(save);
-        filePo.setFilename(userPo.getName());
-        filePo.setParentDir(new FilePo(0L));
-        fileRepository.save(filePo);
+//        FilePo filePo = new FilePo();
+//        filePo.setType(FileType.DIR);
+//        filePo.setUser(save);
+//        filePo.setFilename(userPo.getName());
+//        filePo.setParentDir(new FilePo(0L));
+//        fileRepository.save(filePo);
 
         return save;
     }

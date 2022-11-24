@@ -159,10 +159,10 @@ public class BlockWebsocket {
             String size = redisTemplate.opsForValue().get(blockPo.getFingerprint());
             this.blockPo = blockService.save(blockPo);
 
-            // 如果当前块存在于缓存中，表示当前数据已经存在，不需要进行接下来的上传操作
+            // 如果当前块存在于缓存中，表示当前数据已经存在，不需要进行接下来的上传操作,只需将块的缓存数据加1
             if (size != null) {
                 try {
-                    redisTemplate.opsForValue().set(blockPo.getFingerprint(), String.valueOf(Integer.parseInt(size) + 1));
+                    redisTemplate.opsForValue().increment(blockPo.getFingerprint());
                     sendMessage(JSONObject.toJSONString(new BlockVo("blockMetadata",this.blockPo.getIdx()+1)));
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -206,8 +206,8 @@ public class BlockWebsocket {
 
         try {
             boolean b = blockService.uploadBlock(blockPo);
-            if (!b) {
-                sendMessage("数据上传失败");
+            if (!b){
+                log.info("ceph 已经存储块  "+blockPo.getFingerprint());
             }
             // next 表示当前传输完成，请客户端继续传输
             sendMessage(JSONObject.toJSONString(new BlockVo("blockMetadata",this.blockPo.getIdx()+1)));

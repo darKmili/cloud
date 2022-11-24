@@ -13,9 +13,11 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -40,6 +42,10 @@ public class FileController extends BaseController{
 
     @Autowired
     FileRepository fileRepository;
+
+
+    @Autowired
+    RedisTemplate<String, String> redisTemplate;
 
 
 
@@ -79,7 +85,16 @@ public class FileController extends BaseController{
     private void deleteFileBlock(FilePo filePo){
         if (filePo.getType()==FileType.FILE){
             for (FileBlockPo fileBlock : filePo.getFileBlocks()) {
-                blockService.deleteBlock(fileBlock);
+                // 检查redis的块的信息，将块的数量减一
+                String tmp = redisTemplate.opsForValue().get(fileBlock.getFingerprint());
+                int size =tmp==null?0: Integer.parseInt(tmp);
+                if (size<=1){
+                    redisTemplate.delete(fileBlock.getFingerprint());
+                    blockService.deleteBlock(fileBlock);
+                }else {
+                    redisTemplate.opsForValue().decrement(fileBlock.getFingerprint());
+                }
+
             }
 
         }else {

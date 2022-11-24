@@ -211,7 +211,10 @@ export default {
 
       //此处为文件上传的核心中的核心，涉及分块上传
       this.socket.onmessage =  function (msg) {
-        console.log(msg.data)
+        if(msg.data ==="数据上传失败"){
+          console.log(msg.data)
+          return
+        }
         var tip = JSON.parse(msg.data)
 
 

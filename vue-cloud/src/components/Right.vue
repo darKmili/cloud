@@ -74,17 +74,24 @@
         label="修改时间"
         width="220">
       </el-table-column>
-      <el-table-column label="操作">
-        <template slot-scope="scope">
-          <el-button
-            size="mini"
-            @click="download(scope.$index, scope.row)">下载
-          </el-button>
+      <el-table-column label="操作" >
+        <template slot-scope="scope" >
           <el-button
             size="mini"
             type="danger"
             @click="deleteFile(scope.$index, scope.row)">删除
           </el-button>
+          <el-button
+            size="mini"
+            @click="download(scope.$index, scope.row)" v-if="scope.row.type==='FILE'">下载
+          </el-button>
+        </template>
+      </el-table-column>
+
+      <el-table-column>
+        <template slot-scope="scope" >
+
+        <el-progress :percentage="scope.row.percentage" v-if="scope.row.percentage!==0"></el-progress>
         </template>
       </el-table-column>
     </el-table>
@@ -96,12 +103,10 @@
 
 <script>
 import {
-  newFolder,
   encryptKey,
   dateToString,
   stringtoUint8Array,
   dec,
-  showfilesize,
   uint8ArrayToString
 } from "../assets/js/pbkdf";
 import request from "../assets/js/request";
@@ -121,6 +126,7 @@ async function encryptlist(tdata,_this) {
   let clientRandomValue = stringtoUint8Array(localStorage.getItem('clientRandomValue'));
   const masterKey = stringtoUint8Array(localStorage.getItem('masterKey'));
   for (var i = 0; i < tdata.length; i++) {
+    tdata[i].percentage = 0
     if (tdata[i].type === 'DIR') {
       tdata[i].size = '-'
     } else {
@@ -133,10 +139,7 @@ async function encryptlist(tdata,_this) {
 
     var encryptedfilename = stringtoUint8Array(tdata[i].filename)
     var encryptedmtime = stringtoUint8Array(tdata[i].mtime)
-    // console.log(encryptedfilename)
-    // console.log(encryptedmtime)
-    // console.log(fileKey)
-    //文件名解密出问题 TODO
+
     var filename = await dec(fileKey, clientRandomValue, encryptedfilename)
     console.log("文件名：" + filename)
     tdata[i].filename = new TextDecoder().decode(filename);
@@ -144,7 +147,6 @@ async function encryptlist(tdata,_this) {
     console.log("mtime：" + mtime)
     let mtimeDate = new Date(new TextDecoder().decode(mtime));
     tdata[i].mtime = dateToString(mtimeDate)
-
 
   }
   return tdata
@@ -185,7 +187,7 @@ export default {
       let tdata = []
       await request.get("/files/" + _this.userId).then(function (res) {
         console.log(JSON.stringify(res))
-        if (res.code !== 2000) {
+        if (res.code !=null && res.code !== 2000) {
           alert(res.message);
         }
         tdata = res.data
@@ -198,15 +200,16 @@ export default {
       this.curInode = 0
 
       _this.tableData = await encryptlist(tdata,_this)
-      _this.tableData = tdata
 
     },
     // 下载任务
     download(index, row) {
       var userId = this.userId
-      download({
+      var right = this
+      download(right,{
         userId,
-        row
+        row,
+        index
       })
     },
     // 删除文件

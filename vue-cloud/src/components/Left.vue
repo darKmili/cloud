@@ -2,33 +2,30 @@
   <el-container>
     <el-header>
       <el-menu
-        default-active="2"
+        default-active="1"
         class="el-menu-vertical-demo"
       >
-        <el-menu-item index="2">
+        <el-menu-item index="1">
           <i class="el-icon-tickets"></i>
           <span slot="title">全部文件</span>
         </el-menu-item>
-        <el-menu-item index="3" class="item">
+        <el-menu-item index="2" >
           <i class="el-icon-picture"></i>
           <span slot="title">图片</span>
         </el-menu-item>
-        <el-menu-item index="3" class="item">
+        <el-menu-item index="3" >
           <i class="el-icon-document"></i>
-          <span slot="title" class="item">文档</span>
+          <span slot="title" >文档</span>
         </el-menu-item>
-        <el-menu-item index="3">
+        <el-menu-item index="4">
           <i class="el-icon-video-camera"></i>
-          <span slot="title" class="item">视频</span>
+          <span slot="title" >视频</span>
         </el-menu-item>
-        <el-menu-item index="3">
+        <el-menu-item index="5">
           <i class="el-icon-service"></i>
-          <span slot="title" class="item">音乐</span>
+          <span slot="title" >音乐</span>
         </el-menu-item>
-        <el-menu-item index="3">
-          <i class="el-icon-setting"></i>
-          <span slot="title" class="item">其他</span>
-        </el-menu-item>
+
       </el-menu>
     </el-header>
     <el-main></el-main>

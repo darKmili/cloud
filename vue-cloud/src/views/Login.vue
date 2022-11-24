@@ -93,7 +93,6 @@ export default {
         })
       ).then(async function (res) {
 
-        alert("请求后端成功" + JSON.stringify(res))
         if (res.code === 2000) {
           randomValue = res.data;
           // sessionStorage只能存储字符串数据，无法直接存储数组类型和JSON对象,TODO关注
@@ -102,6 +101,14 @@ export default {
           // 计算256验证哈希
         }
       })
+
+      if (randomValue===null){
+        _this.loading = false
+        _this.$alert("用户密码错误", '提示', {
+          confirmButtonText: '确定',
+        })
+        return
+      }
 
 
       let pbkdf2Key = await pbkdf2Function(_this.ruleForm.pass, randomValue);
@@ -119,7 +126,7 @@ export default {
       var sha256VerifyKey = new Uint8Array(hashBuffer);
       console.log("sha256VerifyKey---" + sha256VerifyKey);
       verify = uint8ArrayToString(sha256VerifyKey)
-      alert("验证哈希"+verify)
+      // alert("验证哈希"+verify)
 
 
       await request.post("/users/login", JSON.stringify({
@@ -127,31 +134,6 @@ export default {
         "verifyKey": verify,
       })).then(async function (res) {
         console.log((JSON.stringify(res)))
-
-        // 响应成功的数据 res
-
-        // {
-        //   "code": 2000,
-        //   "message": "请求成功",
-        //   "data": {
-        //   "id": 1,
-        //     "email": "1227642494@qq.com",
-        //     "name": "leon",
-        //     "face": null,
-        //     "clientRandomValue": "aaaaaa",
-        //     "encryptedMasterKey": "aaaaaa",
-        //     "curLoadTime": null,
-        //     "lastLoadTime": null,
-        //     "registerTime": null,
-        //     "usedCapacity": 0,
-        //     "totalCapacity": 60000,
-        //     "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJyYW5kb21WYWx1ZSI6ImFhYWFhYSIsImlkIjoxLCJleHAiOjE2NTM0OTEwOTYsImVtYWlsIjoiMTIyNzY0MjQ5NEBxcS5jb20ifQ.Yh2m3MiIuE1beMflIEIAMJrZAg1GPoiK_INoDpD5-Xw"
-        // }
-        // }
-
-
-
-
         if (res.code === 2000) {
           _this.loading = false
           var  user = res.data
@@ -160,9 +142,6 @@ export default {
           let randomValueArray = stringtoUint8Array( user.clientRandomValue);
           const left128Bits = stringtoUint8Array(sessionStorage.getItem("left128Bits"));
 
-          // var deKeyBuffer = await dec(left128Bits, randomValueArray, encryptedMasterKey)
-          // var decryptedMasterKey = uint8ArrayToString( new Uint8Array(deKeyBuffer))
-          // console.log("decryptedMasterKey---" + decryptedMasterKey);
 
 
           console.log(encryptedMasterKey)
@@ -191,7 +170,7 @@ export default {
           _this.$alert('登陆成功', '提示', {
             confirmButtonText: '确定',
             callback: action => {
-              _this.$router.push({path: 'Home'})
+              _this.$router.push({path: '/Home'})
             }
           })
           setTimeout(() => {
