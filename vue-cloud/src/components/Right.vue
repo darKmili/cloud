@@ -1,7 +1,7 @@
 <template>
   <div>
     <el-header>
-      <UploadFile id="uploadfile" :parentInode="curInode"></UploadFile>
+      <UploadFile id="uploadfile" :parentInode="curInode" :tableData="tableData"></UploadFile>
       <el-button @click="addfolder = true" class="el-icon-folder-add">新建文件夹</el-button>
       <div id="search"><input placeholder="请输入内容" class="search" v-model="keywords"/><i class="el-icon-search"></i>
       </div>
@@ -88,12 +88,12 @@
         </template>
       </el-table-column>
 
-      <el-table-column>
-        <template slot-scope="scope" >
+<!--      <el-table-column>-->
+<!--        <template slot-scope="scope" >-->
 
-        <el-progress :percentage="scope.row.percentage" v-if="scope.row.percentage!==0"></el-progress>
-        </template>
-      </el-table-column>
+<!--        <el-progress :percentage="scope.row.percentage" v-if="scope.row.percentage!==0"></el-progress>-->
+<!--        </template>-->
+<!--      </el-table-column>-->
     </el-table>
 
 
@@ -243,12 +243,7 @@ export default {
       window.crypto.getRandomValues(folderKey)
 
       var folderKeyEd = await encryptKey(masterKey, clientRandomValue, folderKey)
-      // let data1 = stringtoUint8Array(name)
-      // let data1 = textEncoder.encode(name)
-      // // console.log("fileName:" + data1);
-      // var encryptedMasterKeyHashValue1 = await encryptKey(folderKey, clientRandomValue, data1)
-      // var encryptedData1 = new Uint8Array(encryptedMasterKeyHashValue1)
-      // console.log("encryptedData1:" + encryptedData1)
+
 
       var Mtime = new Date()
       var data2 = stringtoUint8Array(Mtime.toString())
@@ -285,10 +280,6 @@ export default {
 
           var encryptedfilename = stringtoUint8Array(item.filename)
           var encryptedmtime = stringtoUint8Array(item.mtime)
-          // console.log(encryptedfilename)
-          // console.log(encryptedmtime)
-          // console.log(fileKey)
-          //文件名解密出问题 TODO
           var filename = await dec(fileKey, clientRandomValue, encryptedfilename)
           console.log("文件名：" + filename)
           item.filename = new TextDecoder().decode(filename);

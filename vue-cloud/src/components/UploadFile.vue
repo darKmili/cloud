@@ -40,11 +40,11 @@
 </template>
 
 <script>
-import {dec} from "../assets/js/pbkdf";
+import {dateToString, dec} from "../assets/js/pbkdf";
 export default {
   props: {
-    parentInode:null
-
+    parentInode:null,
+    tableData:null
   },
 
   data() {
@@ -129,6 +129,7 @@ export default {
         alert("还未连接后端")
         return
       }
+      // 记录元素的信息
       let _this = this
       var startSize = this.startSize;
       var endSize = this.endSize;
@@ -157,6 +158,7 @@ export default {
       // 文件名加密
       let encoder = new TextEncoder();
       var fileName = filedata.name;
+
       let data1 = encoder.encode(fileName);
       console.log("fileName:" + data1);
       var encryptedMasterKeyHashValue1 = await this.encryptKey(fileKey, clientRandomValue, data1)
@@ -173,9 +175,9 @@ export default {
       console.log("Mtime:" + data2);
       var encryptedMasterKeyHashValue2 = await this.encryptKey(fileKey, clientRandomValue, data2)
       var encryptedData2 = new Uint8Array(encryptedMasterKeyHashValue2)
-      console.log("encryptedData2:" + encryptedData2)
-      console.log("clientRandomValue:" + clientRandomValue)
-      console.log("fileKey"+fileKey)
+      // console.log("encryptedData2:" + encryptedData2)
+      // console.log("clientRandomValue:" + clientRandomValue)
+      // console.log("fileKey"+fileKey)
       var c=await dec(fileKey, clientRandomValue, encryptedData2)
       console.log("c"+c)
       //对密钥加密
@@ -198,12 +200,13 @@ export default {
           size: filedata.size,
           blockSize: blockSize,
           mtime:_this.uint8ArrayToString(encryptedData2),
-          // fileKey: _this.uint8ArrayToString(fileKey),
           fileKey: _this.uint8ArrayToString(encryptedkey),
           userId: localStorage.getItem("uid"),
           parentInode: this.parentInode
         }
       };
+      // 前端展示
+
 
       //后台接收到文件名以后会正式开始传输文件
       console.log("向后台发送消息，请求上传数据")
@@ -225,6 +228,7 @@ export default {
           if (tip.next >= blockSize) {
             _this.socket.send(JSON.stringify({opt: "over"}))
             _this.SpeedOfProgress = 100
+
           } else {
             _this.SpeedOfProgress = Math.floor(tip.next / blockSize * 100)
             // 代表第几个块
@@ -273,12 +277,23 @@ export default {
             _this.socket.send(new Int8Array(blockData))
           }
 
+        }else if(tip.opt ==="over"){
+          var tmp = tip.data
+          let  item = {
+            filename: fileName,
+            fileKey:_this.uint8ArrayToString(fileKey),
+            size: filedata.size+"B",
+            blockSize: blockSize,
+            mtime: dateToString(Mtime),
+            userId: localStorage.getItem("uid"),
+            parentInode: this.parentInode,
+            type:'FILE',
+            inode:tmp.inode,
+            state:'UPLOADED'
+          }
 
-
-
-        } else if (tip.opt === 'over') {
-          console.log("上传成功")
-          _this.socket.send(JSON.stringify({opt: "over"}))
+          // 将上传成功的数据添加到列表中
+          _this.tableData.push(item)
         }
       }
 

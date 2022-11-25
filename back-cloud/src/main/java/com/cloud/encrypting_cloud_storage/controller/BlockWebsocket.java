@@ -159,7 +159,7 @@ public class BlockWebsocket {
             String size = redisTemplate.opsForValue().get(blockPo.getFingerprint());
             this.blockPo = blockService.save(blockPo);
 
-            // 如果当前块存在于缓存中，表示当前数据已经存在，不需要进行接下来的上传操作,只需将块的缓存数据加1
+            // 如果当前块存在于缓存中，表示当前数据已经存在，不存需要进行接下来的上传操作,只需将块的缓数据加1
             if (size != null) {
                 try {
                     redisTemplate.opsForValue().increment(blockPo.getFingerprint());
@@ -180,9 +180,9 @@ public class BlockWebsocket {
 
         } else if (END_UPLOAD.equals(opt)) {
             filePo.setState(FileState.UPLOADED);
-            fileService.save(filePo);
+            final FilePo save = fileService.save(filePo);
             try {
-                sendMessage(JSONObject.toJSONString(new BlockVo("uploaded",null)));
+                sendMessage("{\"opt\":\"over\","+"\"data\":" +JSONObject.toJSONString(filePo)+"}");
             } catch (IOException e) {
                 e.printStackTrace();
             }
