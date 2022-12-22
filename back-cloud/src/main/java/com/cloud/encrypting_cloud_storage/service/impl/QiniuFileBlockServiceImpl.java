@@ -17,6 +17,8 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 /**
+ * 该类暂时未启用
+ *
  * @author leon
  * @Description: 七牛云上传服务
  * @date 2022年04月26日 13:57
@@ -24,7 +26,7 @@ import java.nio.charset.StandardCharsets;
 @Service("QiniuUploadService")
 @Transactional(rollbackFor = Exception.class)
 @Slf4j
-public class QiniuFileBlockServiceImpl extends BlockServiceImpl implements InitializingBean {
+public abstract class QiniuFileBlockServiceImpl extends BlockServiceImpl implements InitializingBean {
     private final Auth auth;
     private final UploadManager uploadManager;
     @Value("${qiniu.bucket}")
@@ -60,7 +62,7 @@ public class QiniuFileBlockServiceImpl extends BlockServiceImpl implements Initi
 
 
     @Override
-    public boolean uploadBlock(FileBlockPo fileBlockPo) throws Exception {
+    public String uploadBlock(FileBlockPo fileBlockPo) throws Exception {
         log.debug("-------------------"+fileBlockPo.getFingerprint());
         Response response = uploadManager.put(fileBlockPo.getData(), fileBlockPo.getFingerprint(), getUploadToken());
         int retry = 0;
@@ -68,7 +70,8 @@ public class QiniuFileBlockServiceImpl extends BlockServiceImpl implements Initi
             response = uploadManager.put(fileBlockPo.getData(), fileBlockPo.getFingerprint(), getUploadToken());
             retry++;
         }
-        return true;
+        // 应该返回URL
+        return "";
     }
 
     /**
@@ -82,5 +85,10 @@ public class QiniuFileBlockServiceImpl extends BlockServiceImpl implements Initi
 
         final Response response = client.get(fileBlockPo.getFingerprint());
         return response.body();
+    }
+
+    @Override
+    public String getFingerprintUrl(String fingerprint) {
+        return null;
     }
 }

@@ -18,8 +18,7 @@ Vue.use(ElementUI,Vuex)
 Vue.http = Vue.prototype.$http = axios
 Vue.prototype.$qs = qs
 Vue.prototype.$md5 = md5
-// Vue.prototype.$HOST='https://'//国外镜像
-// Vue.prototype.$HOST='http://'//国内镜像
+
 Vue.prototype.$HOST='http://localhost:8081'//开发环境
 Vue.prototype.$appid= ""
 Vue.prototype.$appsecret= ""

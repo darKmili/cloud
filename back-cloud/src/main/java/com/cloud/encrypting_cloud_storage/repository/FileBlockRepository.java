@@ -2,6 +2,7 @@ package com.cloud.encrypting_cloud_storage.repository;
 
 import com.cloud.encrypting_cloud_storage.models.po.FileBlockPo;
 import com.cloud.encrypting_cloud_storage.models.po.FilePo;
+import org.springframework.data.domain.Example;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Set;
@@ -18,4 +19,7 @@ public interface FileBlockRepository extends JpaRepository<FileBlockPo,Long> {
      * @return
      */
     Set<FileBlockPo> findByParentFilePo(FilePo filePo);
+
+
+    boolean existsByFingerprint(String fingerprint);
 }

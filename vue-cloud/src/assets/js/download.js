@@ -1,4 +1,4 @@
-// 文件下载
+// 文件下载 ----该方法已经废弃
 import {decryptKey, dec, stringtoUint8Array} from "./pbkdf";
 
 function encodeUtf8(text) {
@@ -30,7 +30,7 @@ async function readAsBinaryArray(file) {
 }
 
 export function download(right, {userId, row, index}) {
-  var fs = require("fs");
+  // 向后端发送请求，获取文件块的URL
   let textEncoder = new TextEncoder();
   var webSocketUrl = 'ws://127.0.0.1:8081/cloud/download/' + userId;
   var socket = new WebSocket(webSocketUrl);

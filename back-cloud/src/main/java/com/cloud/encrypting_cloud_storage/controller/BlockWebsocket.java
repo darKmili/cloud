@@ -2,6 +2,7 @@ package com.cloud.encrypting_cloud_storage.controller;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.codec.Base64;
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.cloud.encrypting_cloud_storage.enums.FileState;
 import com.cloud.encrypting_cloud_storage.enums.FileType;
@@ -157,25 +158,30 @@ public class BlockWebsocket {
             // 将块元数据保存到数据库
             // 检查 当前块的 数据是否已经存在与redis中
             String size = redisTemplate.opsForValue().get(blockPo.getFingerprint());
-            this.blockPo = blockService.save(blockPo);
+            // this.blockPo = blockService.save(blockPo);
 
             // 如果当前块存在于缓存中，表示当前数据已经存在，不存需要进行接下来的上传操作,只需将块的缓数据加1
             if (size != null) {
-                try {
-                    redisTemplate.opsForValue().increment(blockPo.getFingerprint());
-                    sendMessage(JSONObject.toJSONString(new BlockVo("blockMetadata",this.blockPo.getIdx()+1)));
-                } catch (IOException e) {
-                    e.printStackTrace();
+                final boolean exists = blockService.existsByFingerprint(blockPo.getFingerprint());
+                if (!exists){
+                    try {
+                        redisTemplate.opsForValue().increment(blockPo.getFingerprint());
+                        this.blockPo = blockService.save(blockPo);
+                        sendMessage(JSONObject.toJSONString(new BlockVo("blockMetadata",this.blockPo.getIdx()+1)));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
+
                 // 不存在与缓存中
             }else {
                 redisTemplate.opsForValue().set(blockPo.getFingerprint(), String.valueOf(1));
+                this.blockPo = blockService.save(blockPo);
                 try {
                     sendMessage(JSONObject.toJSONString(new BlockVo("blockData",this.blockPo.getIdx())));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-
             }
 
         } else if (END_UPLOAD.equals(opt)) {
@@ -205,9 +211,11 @@ public class BlockWebsocket {
         this.blockPo.setData(message);
 
         try {
-            boolean b = blockService.uploadBlock(blockPo);
-            if (!b){
+            final String url = blockService.uploadBlock(blockPo);
+            if (!StrUtil.isBlank(url)){
                 log.info("ceph 已经存储块  "+blockPo.getFingerprint());
+                blockPo.setUrl(url);
+                blockService.save(blockPo);
             }
             // next 表示当前传输完成，请客户端继续传输
             sendMessage(JSONObject.toJSONString(new BlockVo("blockMetadata",this.blockPo.getIdx()+1)));

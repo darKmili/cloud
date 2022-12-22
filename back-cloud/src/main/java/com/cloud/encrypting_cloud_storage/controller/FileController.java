@@ -16,9 +16,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -58,7 +56,6 @@ public class FileController extends BaseController{
 
     /**
      * 获取当前文件下的所有文件以及目录
-
      */
     @GetMapping("/{dirInode}")
     @ApiOperation(value = "获取目录及目录下的文件，采用递归方式")
@@ -129,6 +126,17 @@ public class FileController extends BaseController{
         filePo.setParentDir(new FilePo(dirInode));
         FilePo save = fileService.save(filePo);
         return ApiResponse.ofSuccess(save);
+    }
+
+    @GetMapping("/{inode}/blocks")
+    @ApiOperation(value = "下载文件块")
+    public ApiResponse downloadFile(@PathVariable("userId") Long userId,@PathVariable("inode") Long inode){
+        final FilePo filePo = fileService.findFileByInodeAndUserId(inode, userId);
+        String[] arr = new String[filePo.getBlockSize()];
+        for (FileBlockPo fileBlock : filePo.getFileBlocks()) {
+            arr[fileBlock.getIdx()] = blockService.getFingerprintUrl(fileBlock.getFingerprint());
+        }
+        return ApiResponse.ofSuccess(arr);
     }
 
 }

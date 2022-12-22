@@ -54,9 +54,16 @@ public class FileBlockPo {
     @ApiModelProperty(value = "文件块所属文件")
     private FilePo parentFilePo;
 
+
+    @ApiModelProperty(value = "文件块链接")
+    @Transient
+    private String url;
+
     @Transient
     @JsonIgnore
     private byte[] data;
+
+
 
     @Override
     public boolean equals(Object o) {

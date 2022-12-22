@@ -175,20 +175,14 @@ export default {
       console.log("Mtime:" + data2);
       var encryptedMasterKeyHashValue2 = await this.encryptKey(fileKey, clientRandomValue, data2)
       var encryptedData2 = new Uint8Array(encryptedMasterKeyHashValue2)
-      // console.log("encryptedData2:" + encryptedData2)
-      // console.log("clientRandomValue:" + clientRandomValue)
-      // console.log("fileKey"+fileKey)
-      var c=await dec(fileKey, clientRandomValue, encryptedData2)
-      console.log("c"+c)
+      // var c=await dec(fileKey, clientRandomValue, encryptedData2)
+      // console.log("c"+c)
       //对密钥加密
       let masterKey = this.stringtoUint8Array(localStorage.getItem('masterKey'));
-      // let masterKey = new Uint8Array(2 ** 4);
-      // window.crypto.getRandomValues(masterKey);
-
       var encryptedMasterKeyHashValue = await this.encryptKey(masterKey, clientRandomValue, fileKey)
       var encryptedkey = new Uint8Array(encryptedMasterKeyHashValue)
-      console.log("encrypted key:" + encryptedkey)
-      console.log("fileKey:" + fileKey);
+      // console.log("encrypted key:" + encryptedkey)
+      // console.log("fileKey:" + fileKey);
 
       var blockSize = Math.ceil(filedata.size / paragraph)
       console.log("发送文件数据之前")
@@ -209,7 +203,7 @@ export default {
 
 
       //后台接收到文件名以后会正式开始传输文件
-      console.log("向后台发送消息，请求上传数据")
+      console.log("向后台发送文件元信息，请求上传数据")
       this.socket.send(JSON.stringify(fileJson));
 
       //此处为文件上传的核心中的核心，涉及分块上传

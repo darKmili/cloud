@@ -74,8 +74,8 @@
         label="修改时间"
         width="220">
       </el-table-column>
-      <el-table-column label="操作" >
-        <template slot-scope="scope" >
+      <el-table-column label="操作">
+        <template slot-scope="scope">
           <el-button
             size="mini"
             type="danger"
@@ -88,12 +88,12 @@
         </template>
       </el-table-column>
 
-<!--      <el-table-column>-->
-<!--        <template slot-scope="scope" >-->
+      <!--      <el-table-column>-->
+      <!--        <template slot-scope="scope" >-->
 
-<!--        <el-progress :percentage="scope.row.percentage" v-if="scope.row.percentage!==0"></el-progress>-->
-<!--        </template>-->
-<!--      </el-table-column>-->
+      <!--        <el-progress :percentage="scope.row.percentage" v-if="scope.row.percentage!==0"></el-progress>-->
+      <!--        </template>-->
+      <!--      </el-table-column>-->
     </el-table>
 
 
@@ -102,19 +102,13 @@
 </template>
 
 <script>
-import {
-  encryptKey,
-  dateToString,
-  stringtoUint8Array,
-  dec,
-  uint8ArrayToString
-} from "../assets/js/pbkdf";
+import {dateToString, dec, decryptKey, encryptKey, stringtoUint8Array, uint8ArrayToString} from "../assets/js/pbkdf";
 import request from "../assets/js/request";
 import UploadFile from "./UploadFile";
-import {download} from "../assets/js/download";
+import axios from "axios";
 
 //解密列表数据1
-async function encryptlist(tdata,_this) {
+async function encryptlist(tdata, _this) {
 
   if (tdata == null) {
     _this.$router.push("/");
@@ -187,7 +181,7 @@ export default {
       let tdata = []
       await request.get("/files/" + _this.userId).then(function (res) {
         console.log(JSON.stringify(res))
-        if (res.code !=null && res.code !== 2000) {
+        if (res.code != null && res.code !== 2000) {
           alert(res.message);
         }
         tdata = res.data
@@ -199,26 +193,75 @@ export default {
       // 默认curInode 是 0
       this.curInode = 0
 
-      _this.tableData = await encryptlist(tdata,_this)
+      _this.tableData = await encryptlist(tdata, _this)
 
     },
     // 下载任务
-    download(index, row) {
-      var userId = this.userId
-      var right = this
-      download(right,{
-        userId,
-        row,
-        index
+    async download(index, row) {
+      // download(right,{
+      //   userId,
+      //   row,
+      //   index
+      // })
+      var fileKey = stringtoUint8Array(row.fileKey)
+      var clientRandomValue = stringtoUint8Array(localStorage.getItem("clientRandomValue"))
+      var filename = row.filename
+      let _this = this
+      await request.get(
+        "/files/" + this.userId + "/" + row.inode + "/blocks"
+      ).then(async function (res) {
+        console.log(JSON.stringify(res))
+        if (res.code != null && res.code !== 2000) {
+          alert(res.message);
+        }
+
+        // 创建一个数组
+        let blocks = new Array(res.data.length)
+        for (var j in res.data) {
+          var blockUrl = res.data[j]
+          await axios.get(blockUrl,{responseType:'arraybuffer'}).then(async function (block) {
+            blocks[j] = await decryptKey(fileKey, clientRandomValue, block.data)
+          })
+        }
+
+        let blob = new Blob(blocks, {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8"});
+        var endTime = new Date()
+        // console.log("下载时间: " + (parseInt(endTime - startTime)).toString()+ "ms，下载大小："+dataSize+"B")
+        if (window.navigator.msSaveOrOpenBlob) {
+          // IE10+下载
+          navigator.msSaveOrBlob(blob, filename);
+        } else {
+          // 非IE10+下载
+          let link = document.createElement('a');
+          link.href = window.URL.createObjectURL(blob);
+          link.download = filename;
+          document.body.appendChild(link);
+          var evt1 = document.createEvent("MouseEvents");
+          evt1.initEvent("click", false, false);
+          link.dispatchEvent(evt1);//释放URL 对象
+          document.body.removeChild(link);
+        }
+      })
+    },
+    async readAsBinaryArray(file) {
+      return new Promise((resolve, reject) => {
+        var reader = new FileReader();
+        reader.readAsArrayBuffer(file);
+        reader.onload = (e) => {
+          let num = e.target.result
+          let v = new Uint8Array(num);
+          console.log(v)
+          resolve(v);
+        };
       })
     },
     // 删除文件
     deleteFile(index, row) {
-      alert(index)
+      // alert(index)
       let _this = this
       request.delete("/files/" + this.userId + "/" + row.inode).then(function (res) {
         if (res.code === 2000) {
-          alert("请求后端成功" + JSON.stringify(res))
+          // alert("请求后端成功" + JSON.stringify(res))
           _this.tableData.splice(index, 1)
         }
       })
@@ -301,7 +344,7 @@ export default {
       if (row.type === "DIR") {
         this.tableData = []
         for (var i = 0; i < row.childrenFiles.length; i++) {
-          this.tableData.concat(await encryptlist(row.childrenFiles[i],this))
+          this.tableData.concat(await encryptlist(row.childrenFiles[i], this))
         }
 
         this.breadlist.push({"name": row.filename, "inode": row.inode, "parent_inode": this.curInode})
