@@ -71,7 +71,7 @@ public class BlockWebsocket {
      * 结束标识判断
      */
     private static final String END_UPLOAD = "over";
-    private static final String FILE_UPLOAD = "fileUpload";
+    private static final String FILE_UPLOAD = "fileMetadata";
     private static final String BLOCK_UPLOAD = "block";
 
     /**

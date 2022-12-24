@@ -6,6 +6,7 @@
 </template>
 
 <script>
+// App.js
 export default {
   name: 'App'
 }

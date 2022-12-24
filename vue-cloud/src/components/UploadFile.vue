@@ -21,7 +21,7 @@
         </el-button>
       </div>
       <br>
-      <el-progress :text-inside="true" :stroke-width="20" :percentage="SpeedOfProgress" :status="status"></el-progress>
+      <el-progress :text-inside="true" :stroke-width="20" :percentage="speedOfProgress" :status="status"></el-progress>
       <div style="margin: 20px 0;"></div>
       <el-input
         id="message_content"
@@ -40,17 +40,21 @@
 </template>
 
 <script>
-import {dateToString, dec} from "../assets/js/pbkdf";
+
+// import Worker from '../assets/js/readfile.worker.js'
+
+import axios from "axios";
+
 export default {
   props: {
-    parentInode:null,
-    tableData:null
+    parentInode: null,
+    tableData: null
   },
 
   data() {
     return {
       dialogVisible: false,
-      SpeedOfProgress: 0,
+      speedOfProgress: 0,
       textarea: "",
       socket: null,
       status: null,
@@ -58,7 +62,7 @@ export default {
       uploadFlag: true,
       startSize: 0,
       endSize: 0,
-      paragraph: 1024 * 1024
+      paragraph: 8 * 1024 * 1024
     }
   }
   ,
@@ -121,231 +125,89 @@ export default {
       for (var idx = 0; idx < arrayLen; ++idx) {
         str += String.fromCharCode(arrayParam[idx]);
       }
+
       return str;
     },
     // 文件上传核心方法
     async uploadFileFun() {
-      if (this.socket == null) {
-        alert("还未连接后端")
-        return
-      }
-      // 记录元素的信息
+      // 主线程负责读取文件内容
+      // 第一个子线程负责加密文件
+      // 第二个子线程负责发送数据
+
+      let response = await axios.get('static/js/encryption.worker.js')
+      var blob = new Blob([response.data], {
+        type: 'text/plain'
+      });
+      const workerBlob = new Blob([blob])
+      let objectURL = URL.createObjectURL(workerBlob);
+      let worker = new Worker(objectURL);
+
+
       let _this = this
-      var startSize = this.startSize;
-      var endSize = this.endSize;
       var paragraph = this.paragraph;
       //文件对象赋值
-      let filedata = this.fileObject;
+      let fileData = this.fileObject;
       //切换保存标识的状态
       this.uploadFlag = false;
-
-
-      //先向后台传输文件名
       //读取文件前128 KB数据利用SHA-256生成256位文件密钥
-      var v = await this.readAsBinaryString(filedata, 0, 1024 * 128);
+      var v = await this.readAsBinaryString(fileData, 0, 1024 * 128);
       const sha256Key = await crypto.subtle.digest('SHA-256', v)
       var fileKey = new Uint8Array(new Uint8Array(sha256Key).subarray(0, 16));
       console.log("fileKey:" + fileKey);
 
-      // 获取用户随机数
-      var fileSize = filedata.size;
-      console.log("file size:" + fileSize);
-      let clientRandomValue = this.stringtoUint8Array(localStorage.getItem('clientRandomValue'));
-      // let clientRandomValue = new Uint8Array(2 ** 4);
-      // window.crypto.getRandomValues(clientRandomValue);
-
-
-      // 文件名加密
-      let encoder = new TextEncoder();
-      var fileName = filedata.name;
-
-      let data1 = encoder.encode(fileName);
-      console.log("fileName:" + data1);
-      var encryptedMasterKeyHashValue1 = await this.encryptKey(fileKey, clientRandomValue, data1)
-      var encryptedData1 = new Uint8Array(encryptedMasterKeyHashValue1)
-      console.log("encryptedData1:" + encryptedData1)
-      // var c=await dec(fileKey, clientRandomValue, encryptedData1)
-
-
-      console.log(clientRandomValue)
-
-      // 上次修改时间
-      var Mtime = filedata.lastModifiedDate;
-      var data2 = encoder.encode(Mtime.toString())
-      console.log("Mtime:" + data2);
-      var encryptedMasterKeyHashValue2 = await this.encryptKey(fileKey, clientRandomValue, data2)
-      var encryptedData2 = new Uint8Array(encryptedMasterKeyHashValue2)
-      // console.log("encryptedData2:" + encryptedData2)
-      // console.log("clientRandomValue:" + clientRandomValue)
-      // console.log("fileKey"+fileKey)
-      var c=await dec(fileKey, clientRandomValue, encryptedData2)
-      console.log("c"+c)
-      //对密钥加密
-      let masterKey = this.stringtoUint8Array(localStorage.getItem('masterKey'));
-      // let masterKey = new Uint8Array(2 ** 4);
-      // window.crypto.getRandomValues(masterKey);
-
-      var encryptedMasterKeyHashValue = await this.encryptKey(masterKey, clientRandomValue, fileKey)
-      var encryptedkey = new Uint8Array(encryptedMasterKeyHashValue)
-      console.log("encrypted key:" + encryptedkey)
-      console.log("fileKey:" + fileKey);
-
-      var blockSize = Math.ceil(filedata.size / paragraph)
-      console.log("发送文件数据之前")
+      var blockSize = Math.ceil(fileData.size / paragraph)
       //后台只接收字符串类型，我们定义一个字符串的json对象给后台解析
       let fileJson = {
-        opt: "fileUpload",
-        data: {
-          filename: _this.uint8ArrayToString(encryptedData1),
-          size: filedata.size,
+        opt: "fileMetadata",
+        data:{
+          filename: fileData.name, //_this.uint8ArrayToString(encryptedData1)
+          size: fileData.size,
           blockSize: blockSize,
-          mtime:_this.uint8ArrayToString(encryptedData2),
-          fileKey: _this.uint8ArrayToString(encryptedkey),
+          mtime: fileData.lastModifiedDate,
+          fileKey: fileKey,
           userId: localStorage.getItem("uid"),
-          parentInode: this.parentInode
+          parentInode: this.parentInode,
+          clientRandomValue: localStorage.getItem('clientRandomValue'), //str
+          masterKey: localStorage.getItem('masterKey'),
+          webSocketUrl: 'ws://127.0.0.1:8081/cloud/upload/'
         }
       };
-      // 前端展示
+      worker.postMessage(fileJson)
+      let start = 0
+      let idx = 0
+      // 数据信息发送到读取线程
+      if (fileData != null) {
+        // 按照8M大小不断读取文件，并将文件数据发送到下个线程（通过转移，而不是负责）
+        while (start < fileData.size) {
+          const end = start + paragraph > fileData.size ? fileData.size : start + paragraph
+          let block = fileData.slice(start, end);
+          // 同步读取方法，只能在work线程中使用
 
-
-      //后台接收到文件名以后会正式开始传输文件
-      console.log("向后台发送消息，请求上传数据")
-      this.socket.send(JSON.stringify(fileJson));
-
-      //此处为文件上传的核心中的核心，涉及分块上传
-      this.socket.onmessage =  function (msg) {
-        if(msg.data ==="数据上传失败"){
-          console.log(msg.data)
-          return
-        }
-        var tip = JSON.parse(msg.data)
-
-
-        // opt next
-        // 上传块元数据
-        if (tip.opt === 'blockMetadata') {
-          console.log("上传块元数据")
-          if (tip.next >= blockSize) {
-            _this.socket.send(JSON.stringify({opt: "over"}))
-            _this.SpeedOfProgress = 100
-
-          } else {
-            _this.SpeedOfProgress = Math.floor(tip.next / blockSize * 100)
-            // 代表第几个块
-            var start = tip.next * paragraph;
-            var end = start + paragraph > filedata.size ? filedata.size : start + paragraph;
-            var block = filedata.slice(start, end);
-            var reader = new FileReader();
-            reader.readAsArrayBuffer(block);
-            reader.onload = async function loaded(evt) {
-              var arrayBuffer = evt.target.result;
-              console.log(arrayBuffer);
-              _this.textarea += ("发送文件第" + tip.next + "部分" + '\n');
-              // 加密块，生成块的指纹
-              console.log(new Uint8Array(arrayBuffer))
-              var fingerprint = await crypto.subtle.digest('SHA-1', new Uint8Array(arrayBuffer))
-              fingerprint = new Uint8Array(fingerprint).subarray(0, 20)
-              console.log("--------------" + fingerprint)
-              fingerprint = _this.uint8ArrayToString(fingerprint)
-              let fileObjJson = {
-                opt: "block",
-                data: {
-                  fingerprint: fingerprint,
-                  idx: tip.next,
-                  size: end - start
-                }
-
-              };
-              _this.socket.send(JSON.stringify(fileObjJson));
-
-            }
-          }
-          // 上传块数据本身
-        } else if (tip.opt === 'blockData') {
-          console.log("上传块数据")
-          var start = tip.next * paragraph;
-          var end = start + paragraph > filedata.size ? filedata.size : start + paragraph;
-          var block = filedata.slice(start, end);
-          var reader = new FileReader();
-          reader.readAsArrayBuffer(block);
-
-          reader.onload = async function loaded(evt) {
-            var  arrayBuffer = evt.target.result
-            // 加密数据
-            var blockData =  await _this.encryptKey(fileKey,clientRandomValue,arrayBuffer)
-            // 发送数据
-            _this.socket.send(new Int8Array(blockData))
-          }
-
-        }else if(tip.opt ==="over"){
-          var tmp = tip.data
-          let  item = {
-            filename: fileName,
-            fileKey:_this.uint8ArrayToString(fileKey),
-            size: filedata.size+"B",
-            blockSize: blockSize,
-            mtime: dateToString(Mtime),
-            userId: localStorage.getItem("uid"),
-            parentInode: this.parentInode,
-            type:'FILE',
-            inode:tmp.inode,
-            state:'UPLOADED'
-          }
-
-          // 将上传成功的数据添加到列表中
-          _this.tableData.push(item)
+          let binaryArray =  await _this.readAsBinaryString(block)
+          // 将数据发送到加密线程中.指定文件块的文件名，
+          worker.postMessage({opt: 'block',idx:idx, binaryArray: binaryArray})
+          idx++
+          start = end
         }
       }
 
-      this.socket.onclose = function () {
-        alert("后端已经断开连接")
-        this.socket = null
-        this.dialogVisible = false
+      // 用来接受回显信息(更新上传进度)
+      worker.onmessage = (ev) => {
+        _this.speedOfProgress = ev
+        if (_this.speedOfProgress === 100) {
+          _this.uploadFlag = true
+        }
       }
-
-
     }
     ,
     // 打开上传框的时做的事件
     openSocket() {
       // 这里面存有 用户的 id
-      this.SpeedOfProgress = 0
-      let userid = JSON.parse(localStorage.getItem("userid"));
-      if (userid == null) {
-        userid = "1"
-      }
-      var webSocketUrl = 'ws://127.0.0.1:8081/cloud/upload/';//websocketi连接地址 //ws://127.0.0.1:8080/upload/block
-      // var paragraph = 1024 * 1024;//文件分块上传大小1M
-      // var startSize, endSize = 0;//文件的起始大小和文件的结束大小
-      // var i = 0;//第几部分文件
-
-      if (!this.socket || this.socket) {//避免重复连接
-        this.socket = new WebSocket(webSocketUrl + userid);
-        console.log(this.socket)
-        this.socket.onopen = function () {
-          console.log("websocket已连接");
-        };
-        this.socket.onmessage = function (e) {
-          if (this.uploadFlag) {
-            //服务端发送的消息
-            this.textarea += (e.data + '\n');
-          }
-        };
-        this.socket.onclose = function () {
-          console.log("websocket已断开");
-          this.dialogVisible = false;
-        }
-      }
-
+      this.speedOfProgress = 0
     },
     // 关闭上传框的时做的事件
     closeSocket() {
-      if (this.socket != null) {
-        console.log("端口连接")
-        this.socket.close();
-      }
-      this.textarea = "";
-      this.socket = null;
+
     }
   }
 
