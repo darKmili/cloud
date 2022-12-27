@@ -48,31 +48,7 @@ public class CephFileBlockServiceImpl extends BlockServiceImpl {
 
     @Override
     public String uploadBlock(FileBlockPo fileBlockPo) throws Exception {
-        List<Bucket> buckets = amazonS3.listBuckets();
-        Set<String> buckets_set = new HashSet<>();
-        for (Bucket bucket : buckets) {
-            buckets_set.add(bucket.getName());
-        }
-        if (!buckets_set.contains(bucketName)) {
-//            amazonS3.createBucket(bucketName);
-            List<CORSRule.AllowedMethods> rule1AM = new ArrayList<CORSRule.AllowedMethods>();
-            rule1AM.add(CORSRule.AllowedMethods.PUT);
-            rule1AM.add(CORSRule.AllowedMethods.POST);
-            rule1AM.add(CORSRule.AllowedMethods.DELETE);
-            rule1AM.add(CORSRule.AllowedMethods.GET);
-            CORSRule rule1 = new CORSRule().withId("CORSRule1")
-                    .withAllowedMethods(rule1AM)
-                    .withAllowedOrigins(Arrays.asList("*"))
-                    .withAllowedHeaders(Arrays.asList("*"))
-                    .withMaxAgeSeconds(3000);
-            List<CORSRule> rules = new ArrayList<CORSRule>();
-            rules.add(rule1);
-            // Add the rules to a new CORS configuration.
-            BucketCrossOriginConfiguration configuration = new BucketCrossOriginConfiguration();
-            configuration.setRules(rules);
-            // Add the configuration to the bucket.
-            amazonS3.setBucketCrossOriginConfiguration(bucketName, configuration);
-        }
+
         InputStream inputStream = new ByteArrayInputStream(fileBlockPo.getData());
         PutObjectResult putObjectResult = amazonS3.putObject(bucketName, fileBlockPo.getFingerprint(), inputStream, null);
 

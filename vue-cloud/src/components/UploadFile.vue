@@ -1,12 +1,13 @@
 <template>
   <div class="file-up">
     <el-button type="primary" size="medium" icon="el-icon-upload" @click="dialogVisible = true">上传文件</el-button>
-    <el-dialog
+    <el-drawer
       title="上传"
       :visible.sync="dialogVisible"
       width="40%"
       v-on:open="openSocket"
       v-on:close="closeSocket"
+      :before-close="handleClose"
     >
 
       <div>
@@ -34,7 +35,7 @@
       >
       </el-input>
       <span slot="footer" class="dialog-footer"></span>
-    </el-dialog>
+    </el-drawer>
   </div>
 
 </template>
@@ -66,6 +67,13 @@ export default {
 
   methods: {
 
+    handleClose(done) {
+      this.$confirm('确认关闭？关闭将会暂停上传')
+        .then(_ => {
+          done();
+        })
+        .catch(_ => {});
+    },
     fileOnchange(e) {
       // 获取文件对象
       this.fileObject = e.target.files[0];
@@ -334,12 +342,13 @@ export default {
     },
     // 关闭上传框的时做的事件
     closeSocket() {
-      if (this.socket != null) {
-        console.log("端口连接")
-        this.socket.close();
-      }
-      this.textarea = "";
-      this.socket = null;
+      // 无需关闭
+      // if (this.socket != null) {
+      //   console.log("端口连接")
+      //   this.socket.close();
+      // }
+      // this.textarea = "";
+      // this.socket = null;
     }
   }
 
