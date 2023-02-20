@@ -1,6 +1,6 @@
 <template>
   <div class="file-up">
-    <el-button type="primary" size="medium" icon="el-icon-upload" @click="dialogVisible = true">上传文件</el-button>
+    <el-button type="primary" size="medium" icon="el-icon-upload" @click="dialogVisible = true">上传文件(采用分块上传)</el-button>
     <el-dialog
       title="上传"
       :visible.sync="dialogVisible"
@@ -19,6 +19,17 @@
         <el-button class="ml-3" type="success" @click="uploadFileFun">
           确认上传
         </el-button>
+
+        <el-select v-model="paragraph" placeholder="请选择分割文件块大小">
+          <el-option
+            v-for="item in options"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+            size="small"
+          >
+          </el-option>
+        </el-select>
       </div>
       <br>
       <el-progress :text-inside="true" :stroke-width="20" :percentage="speedOfProgress" :status="status"></el-progress>
@@ -41,7 +52,6 @@
 
 <script>
 
-// import Worker from '../assets/js/readfile.worker.js'
 
 import axios from "axios";
 
@@ -62,20 +72,80 @@ export default {
       uploadFlag: true,
       startSize: 0,
       endSize: 0,
-      paragraph: 8 * 1024 * 1024
+      paragraph: 1024,
+      options: [{
+        value: 1024,
+        label: '分块大小 1KB'
+      },
+        {
+          value: 2 * 1024,
+          label: '分块大小 2KB'
+        }, {
+          value: 4 * 1024,
+          label: '分块大小 4KB'
+        }, {
+          value: 8 * 1024,
+          label: '分块大小 8KB'
+        }, {
+          value: 16 * 1024,
+          label: '分块大小 16KB'
+        }, {
+          value: 32 * 1024,
+          label: '分块大小 32KB'
+        }, {
+          value: 64 * 1024,
+          label: '分块大小 64KB'
+        }, {
+          value: 128 * 1024,
+          label: '分块大小 128KB'
+        }, {
+          value: 256 * 1024,
+          label: '分块大小 256KB'
+        }, {
+          value: 512 * 1024,
+          label: '分块大小 512KB'
+        }, {
+          value: 1024 * 1024,
+          label: '分块大小 1MB'
+        }, {
+          value: 2 * 1024 * 1024,
+          label: '分块大小 2MB'
+        }, {
+          value: 4 * 1024 * 1024,
+          label: '分块大小 4MB'
+        }, {
+          value: 8 * 1024 * 1024,
+          label: '分块大小 8MB'
+        }, {
+          value: 16 * 1024 * 1024,
+          label: '分块大小 16MB'
+        }, {
+          value: 32 * 1024 * 1024,
+          label: '分块大小 32MB'
+        }, {
+          value: 64 * 1024 * 1024,
+          label: '分块大小 64MB'
+        }
+
+      ]
     }
   }
   ,
-  watch: {},
+  created() {
+
+  },
+
 
   methods: {
-
     fileOnchange(e) {
-      // 获取文件对象
-      this.fileObject = e.target.files[0];
-      console.log(this.fileObject)
-      this.textarea += (this.fileObject.name + "\n")
-      this.textarea += ("共计" + Math.ceil(this.fileObject.size / this.paragraph) + "部分\n")
+      if (e.target.files.length !== 0) {
+        // 获取文件对象
+        this.fileObject = e.target.files[0];
+        console.log(this.fileObject)
+        this.textarea += (this.fileObject.name + "\n")
+        this.textarea += ("共计" + Math.ceil(this.fileObject.size / this.paragraph) + "部分\n")
+      }
+
     },
     // 加密方法
     async encryptKey(keyArr, clientRandomValue, theKeyToEnc) {
@@ -104,7 +174,7 @@ export default {
         reader.onload = (e) => {
           let num = e.target.result
           let v = new Uint8Array(num);
-          console.log(v)
+          // console.log(v)
           resolve(v);
         };
       })
@@ -128,11 +198,38 @@ export default {
 
       return str;
     },
+    intToByteBig(number, length) {
+      var bytes = new ArrayBuffer(length);
+      bytes[3] = (number & 0xff)
+      bytes[2] = (number >> 8 & 0xff)
+      bytes[1] = (number >> 16 & 0xff)
+      bytes[0] = (number >> 24 & 0xff)
+      return bytes;
+    },
+    mergeArrayBuffer(arrays) {
+      let totalLen = 0;
+      for (let arr in arrays) {
+        totalLen += arr.byteLength;
+      }
+      let res = new Uint8Array(totalLen)
+      let offset = 0
+      for (let earr in arrays) {
+        for (let arr in [earr]) {
+          let uint8Arr = new Uint8Array(arr)
+          res.set(uint8Arr, offset)
+          offset += arr.byteLength
+        }
+      }
+      return res.buffer
+    }
+    ,
     // 文件上传核心方法
     async uploadFileFun() {
-      // 主线程负责读取文件内容
-      // 第一个子线程负责加密文件
-      // 第二个子线程负责发送数据
+
+      if (this.socket === null) {
+        this.socket = new WebSocket('ws://127.0.0.1:8081/cloud/upload/' + localStorage.getItem("uid"))
+
+      }
 
       let response = await axios.get('static/js/encryption.worker.js')
       var blob = new Blob([response.data], {
@@ -143,71 +240,209 @@ export default {
       let worker = new Worker(objectURL);
 
 
+      // 开始时间
+      // var startTime = new Date()
+
+      // console.log("开始时间戳：" + startTime.getTime())
       let _this = this
       var paragraph = this.paragraph;
       //文件对象赋值
       let fileData = this.fileObject;
       //切换保存标识的状态
       this.uploadFlag = false;
-      //读取文件前128 KB数据利用SHA-256生成256位文件密钥
+      //读取文件前128KB数据利用SHA-256生成256位文件密钥
       var v = await this.readAsBinaryString(fileData, 0, 1024 * 128);
       const sha256Key = await crypto.subtle.digest('SHA-256', v)
       var fileKey = new Uint8Array(new Uint8Array(sha256Key).subarray(0, 16));
-      console.log("fileKey:" + fileKey);
 
       var blockSize = Math.ceil(fileData.size / paragraph)
       //后台只接收字符串类型，我们定义一个字符串的json对象给后台解析
       let fileJson = {
         opt: "fileMetadata",
-        data:{
-          filename: fileData.name, //_this.uint8ArrayToString(encryptedData1)
+        data: {
+          filename: fileData.name,
           size: fileData.size,
           blockSize: blockSize,
           mtime: fileData.lastModifiedDate,
           fileKey: fileKey,
-          userId: localStorage.getItem("uid"),
           parentInode: this.parentInode,
           clientRandomValue: localStorage.getItem('clientRandomValue'), //str
           masterKey: localStorage.getItem('masterKey'),
-          webSocketUrl: 'ws://127.0.0.1:8081/cloud/upload/'
         }
       };
+      // 将文件原数据发送到加密线程进行处理
       worker.postMessage(fileJson)
-      let start = 0
-      let idx = 0
-      // 数据信息发送到读取线程
-      if (fileData != null) {
-        // 按照8M大小不断读取文件，并将文件数据发送到下个线程（通过转移，而不是负责）
-        while (start < fileData.size) {
-          const end = start + paragraph > fileData.size ? fileData.size : start + paragraph
-          let block = fileData.slice(start, end);
-          // 同步读取方法，只能在work线程中使用
 
-          let binaryArray =  await _this.readAsBinaryString(block)
-          // 将数据发送到加密线程中.指定文件块的文件名，
-          worker.postMessage({opt: 'block',idx:idx, binaryArray: binaryArray})
-          idx++
-          start = end
+      var t1 = null, t2 = null, t3 = null
+      // 用来接受加密算法返回的结果
+      worker.onmessage = async (ev) => {
+        var data = ev.data
+        if (data.opt === 'fileMetadata') {
+          // 得到加密得文件信息数据，将加密文件信息数据发送到后台
+          console.log("文件原数据发送")
+          _this.socket.send(JSON.stringify(data))
+          let idx = 0
+          // 循环读取文件块信息数据
+          t1 = new Date()
+          console.log("开始时间戳" + t1.getTime())
+          for (let start = 0; start < fileData.size; start += paragraph) {
+            let date = new Date();
+            var block = fileData.slice(start, start + paragraph > fileData.size ? fileData.size : start + paragraph);
+            let binaryArray = (await _this.readAsBinaryString(block)).buffer
+            t2 = new Date()
+            // console.log("读取时间" + (t2 - t1))
+            worker.postMessage({opt: 'block', binaryArray: binaryArray, idx: idx, size: block.size}, [binaryArray])
+            idx++
+          }
+        } else if (data.opt === 'block') {
+          t3 = new Date()
+          // TODO 将验证与发送数据合二为一
+          // console.log("加密线程时间" + (t3 - t2))
+          // console.log("发送前得时间戳" + t3.getTime())
+          // _this.socket.send(data.data)
+          // opt: 'block',
+          //   fingerprint: fingerprint,
+          //   idx:intToByteBig(data.idx),
+          //   encryptedData:encryptedData,
+          //   size:intToByteBig(data.size)
+          // _this.socket.send(data.fingerprint)
+          // _this.socket.send(data.idx)
+          // _this.socket.send(data.size)
+          _this.socket.send(data.encryptedData)
         }
       }
 
-      // 用来接受回显信息(更新上传进度)
-      worker.onmessage = (ev) => {
-        _this.speedOfProgress = ev
+      _this.socket.onclose = function () {
+        alert("后端已经断开连接")
+        this.socket = null
+        this.dialogVisible = false
+      }
+
+      _this.socket.onmessage = async function (msg) {
+        if (msg.data === "数据上传失败") {
+          console.log(msg.data)
+          return
+        }
+
+        // 返回文件上传信息，主要用于反馈进度，让用户知道数据上传的具体进度
+        var tip = JSON.parse(msg.data)
+        _this.speedOfProgress = Math.ceil((tip.idx + 1) / blockSize * 100)
         if (_this.speedOfProgress === 100) {
-          _this.uploadFlag = true
+          var endTime = new Date()
+          console.log("发送时间间隔")
+          console.log(Math.abs(endTime - startTime) / 1000)
+          var unit = 'B'
+          var size = fileData.size
+          if (size > 1024) {
+            size = Math.ceil(size / 1024)
+            unit = 'KB'
+          }
+          if (size > 1024) {
+            size = Math.ceil(size / 1024)
+            unit = 'MB'
+          }
+          if (size > 1024) {
+            size = Math.ceil(size / 1024)
+            unit = 'GB'
+          }
+          var tmp = tip.parentFilePo
+          let item = {
+            filename: fileData.name,
+            fileKey: _this.uint8ArrayToString(fileKey),
+            size: size + unit,
+            blockSize: blockSize,
+            userId: localStorage.getItem("uid"),
+            parentInode: tmp.parentDir.inode,
+            mtime: new Date(fileData.lastModified).toLocaleString(),
+            type: 'FILE',
+            inode: tmp.inode,
+            state: 'UPLOADED'
+          }
+          // 将上传成功的数据添加到列表中
+          _this.tableData.push(item)
         }
       }
+
+    }
+    ,
+    // 单流水线加密发送
+    async uploadFileFun2() {
+      if (this.socket === null) {
+        this.socket = new WebSocket('ws://127.0.0.1:8081/cloud/upload/' + localStorage.getItem("uid"))
+
+      }
+
+      let _this = this
+      var paragraph = this.paragraph;
+      //文件对象赋值
+      let fileData = this.fileObject;
+      //切换保存标识的状态
+      this.uploadFlag = false;
+      //读取文件前128KB数据利用SHA-256生成256位文件密钥
+      var v = await this.readAsBinaryString(fileData, 0, 1024 * 128);
+      const sha256Key = await crypto.subtle.digest('SHA-256', v)
+      var fileKey = new Uint8Array(new Uint8Array(sha256Key).subarray(0, 16));
+      var blockSize = Math.ceil(fileData.size / paragraph)
+      //后台只接收字符串类型，我们定义一个字符串的json对象给后台解析
+      let data = {
+        opt: "fileMetadata",
+        data: {
+          filename: fileData.name,
+          size: fileData.size,
+          blockSize: blockSize,
+          mtime: fileData.lastModifiedDate,
+          fileKey: fileKey,
+          parentInode: this.parentInode,
+          clientRandomValue: localStorage.getItem('clientRandomValue'), //str
+          masterKey: localStorage.getItem('masterKey'),
+        }
+      };
+      // 将文件原数据发送到加密线程进行处理
+
+      // 解密文件元数据，将元数据发送到主线程
+      // 获取文件密钥
+      fileKey = data.data.fileKey
+      var clientRandomValue = _this.stringToUint8Array(data.data.clientRandomValue)
+
+      var t1 = new Date()
+      console.log(t1.getTime())
+      var idx = 0
+      for (let start = 0; start < fileData.size; start += paragraph) {
+        var block = fileData.slice(start, start + paragraph > fileData.size ? fileData.size : start + paragraph);
+        let binaryArray = (await _this.readAsBinaryString(block)).buffer
+        // 加密文件块
+        let fingerprint = await crypto.subtle.digest('SHA-1', new Uint8Array(binaryArray))
+        let encryptedData = await _this.encryptKey(fileKey, clientRandomValue, binaryArray);
+        _this.socket.send(encryptedData)
+
+        idx++
+      }
+
+
+    },
+    stringToUint8Array(theStr) {
+      var arr = [];
+      var strLen = theStr.length;
+      for (var idx = 0; idx < strLen; ++idx) {
+        arr.push(theStr.charCodeAt(idx));
+      }
+      return new Uint8Array(arr)
     }
     ,
     // 打开上传框的时做的事件
     openSocket() {
       // 这里面存有 用户的 id
       this.speedOfProgress = 0
+
     },
     // 关闭上传框的时做的事件
     closeSocket() {
-
+      if (this.socket != null) {
+        console.log("端口连接")
+        this.socket.close();
+      }
+      this.textarea = "";
+      this.socket = null;
     }
   }
 

@@ -10,15 +10,12 @@
 
     <div class="middle-wrapper" style="padding: 10px">
       <!-- 面包屑导航栏 -->
-
       <el-breadcrumb separator-class="el-icon-arrow-right">
         <el-breadcrumb-item :to="{ path: '/Home',}"><a @click="back">返回</a></el-breadcrumb-item>
         <el-breadcrumb-item
           v-for="(item, index) in breadlist"
           :key="index"
           :to="{ path: ''}"
-
-
         >{{ item.name }}
         </el-breadcrumb-item>
 
@@ -74,8 +71,9 @@
         label="修改时间"
         width="220">
       </el-table-column>
-      <el-table-column label="操作" >
-        <template slot-scope="scope" >
+
+      <el-table-column label="操作">
+        <template slot-scope="scope">
           <el-button
             size="mini"
             type="danger"
@@ -85,75 +83,153 @@
             size="mini"
             @click="download(scope.$index, scope.row)" v-if="scope.row.type==='FILE'">下载
           </el-button>
+          <el-button
+            size="mini"
+            @click="" v-if="scope.row.type==='FILE'">分享
+          </el-button>
         </template>
       </el-table-column>
 
-<!--      <el-table-column>-->
-<!--        <template slot-scope="scope" >-->
-
-<!--        <el-progress :percentage="scope.row.percentage" v-if="scope.row.percentage!==0"></el-progress>-->
-<!--        </template>-->
-<!--      </el-table-column>-->
+      <el-table-column>
+        <template slot-scope="scope">
+          <el-progress :percentage="percentage" :text-inside="true" :stroke-width="22"
+                       v-if="clickingIdx!==null&& clickingIdx===scope.$index "></el-progress>
+        </template>
+      </el-table-column>
     </el-table>
-
-
   </div>
 
 </template>
 
 <script>
-import {
-  encryptKey,
-  dateToString,
-  stringtoUint8Array,
-  dec,
-  uint8ArrayToString
-} from "../assets/js/pbkdf";
+
+import {dateToString, dec, decryptKey, encryptKey, stringtoUint8Array, uint8ArrayToString} from "../assets/js/pbkdf";
 import request from "../assets/js/request";
 import UploadFile from "./UploadFile";
-import {download} from "../assets/js/download";
+import axios from "axios";
 
 //解密列表数据1
-async function encryptlist(tdata,_this) {
+async function encryptlist(type,tdata, _this) {
 
   if (tdata == null) {
     _this.$router.push("/");
     alert("请登录")
     return null
   }
-
-
+  var tablelist = new Set()
   let clientRandomValue = stringtoUint8Array(localStorage.getItem('clientRandomValue'));
   const masterKey = stringtoUint8Array(localStorage.getItem('masterKey'));
-  for (var i = 0; i < tdata.length; i++) {
-    tdata[i].percentage = 0
-    if (tdata[i].type === 'DIR') {
-      tdata[i].size = '-'
-    } else {
-      tdata[i].size = tdata[i].size + 'B'
-    }
-    var encryptedfileKey = stringtoUint8Array(tdata[i].fileKey)
-    // 解密文件密钥
-    var fileKey = await dec(masterKey, clientRandomValue, encryptedfileKey)
-    tdata[i].fileKey = uint8ArrayToString(new Uint8Array(fileKey))
-
-    var encryptedfilename = stringtoUint8Array(tdata[i].filename)
-    var encryptedmtime = stringtoUint8Array(tdata[i].mtime)
-
-    var filename = await dec(fileKey, clientRandomValue, encryptedfilename)
-    console.log("文件名：" + filename)
-    tdata[i].filename = new TextDecoder().decode(filename);
-    var mtime = await dec(fileKey, clientRandomValue, encryptedmtime)
-    console.log("mtime：" + mtime)
-    let mtimeDate = new Date(new TextDecoder().decode(mtime));
-    tdata[i].mtime = dateToString(mtimeDate)
-
+  var suffixes = null
+  if (type==='Camera'){
+     suffixes = ['AVI','MOV','RMVB','RM','MP4']
+  }else if (type==='Document'){
+     suffixes = ['DOC','DOCX','PPT','XLS','WPS','PDF','CSV','TXT']
+  }else if(type==='Music'){
+     suffixes = ['MP3','WMA','WAV','MID']
+  }else if(type==='Picture'){
+     suffixes = ['JPG','JPEG','PNG','GIF']
   }
-  return tdata
+
+  if (suffixes===null){
+
+    for (var i = 0; i < tdata.length; i++) {
+      tdata[i].percentage = 0
+      if (tdata[i].type === 'DIR') {
+        tdata[i].size = '-'
+      } else {
+        var unit = 'B'
+        var size = tdata[i].size
+        if (size > 1024) {
+          size = Math.ceil(size / 1024)
+          unit = 'KB'
+        }
+        if (size > 1024) {
+          size = Math.ceil(size / 1024)
+          unit = 'MB'
+        }
+        if (size > 1024) {
+          size = Math.ceil(size / 1024)
+          unit = 'GB'
+        }
+        tdata[i].size = size + unit
+      }
+      var encryptedfileKey = stringtoUint8Array(tdata[i].fileKey)
+      // 解密文件密钥
+      var fileKey = await dec(masterKey, clientRandomValue, encryptedfileKey)
+      tdata[i].fileKey = uint8ArrayToString(new Uint8Array(fileKey))
+
+      var encryptedfilename = stringtoUint8Array(tdata[i].filename)
+      var encryptedmtime = stringtoUint8Array(tdata[i].mtime)
+
+      var filename = await dec(fileKey, clientRandomValue, encryptedfilename)
+      console.log("文件名：" + filename)
+      tdata[i].filename = new TextDecoder().decode(filename);
+      var mtime = await dec(fileKey, clientRandomValue, encryptedmtime)
+      console.log("mtime：" + mtime)
+      let mtimeDate = new Date(new TextDecoder().decode(mtime));
+      tdata[i].mtime = dateToString(mtimeDate)
+
+    }
+    return tdata
+
+  }else {
+    for (var i = 0; i < tdata.length; i++) {
+      tdata[i].percentage = 0
+      var encryptedfileKey = stringtoUint8Array(tdata[i].fileKey)
+      // 解密文件密钥
+      var fileKey = await dec(masterKey, clientRandomValue, encryptedfileKey)
+      tdata[i].fileKey = uint8ArrayToString(new Uint8Array(fileKey))
+
+      var encryptedfilename = stringtoUint8Array(tdata[i].filename)
+      var encryptedmtime = stringtoUint8Array(tdata[i].mtime)
+
+      var filenameCode = await dec(fileKey, clientRandomValue, encryptedfilename)
+      console.log("文件名：" + filename)
+
+      tdata[i].filename = new TextDecoder().decode(filenameCode);
+      var filename = tdata[i].filename
+      var suffix =  filename.substring(filename.lastIndexOf('.')+1,filename.length)
+      console.log(suffix)
+      if  (suffixes.includes(suffix.toUpperCase())){
+        var mtime = await dec(fileKey, clientRandomValue, encryptedmtime)
+        console.log("mtime：" + mtime)
+        let mtimeDate = new Date(new TextDecoder().decode(mtime));
+        tdata[i].mtime = dateToString(mtimeDate)
+        if(tdata[i].type!=='DIR'){
+          var unit = 'B'
+          var size = tdata[i].size
+          if (size>=1024){
+            size=Math.ceil( size/1024)
+            unit = 'KB'
+          }
+          if (size>=1024){
+            size=Math.ceil( size/1024)
+            unit = 'MB'
+          }
+          if (size>=1024){
+            size=Math.ceil( size/1024)
+            unit = 'GB'
+          }
+          tdata[i].size = size+unit
+        }
+        tablelist.add(tdata[i])
+      }
+    }
+
+    console.log(tablelist)
+    return Array.from(tablelist)
+  }
+
+
+
+
 }
 
 export default {
   name: 'Right',
+  props:{
+    type:null
+  },
   components: {
     UploadFile,
   },
@@ -173,7 +249,9 @@ export default {
       curInode: null,
       userId: null,
       fromData: [],
-      breadlist: []
+      breadlist: [],
+      clickingIdx: null,
+      percentage: 0
     }
   },
   created() {
@@ -187,7 +265,7 @@ export default {
       let tdata = []
       await request.get("/files/" + _this.userId).then(function (res) {
         console.log(JSON.stringify(res))
-        if (res.code !=null && res.code !== 2000) {
+        if (res.code != null && res.code !== 2000) {
           alert(res.message);
         }
         tdata = res.data
@@ -199,26 +277,64 @@ export default {
       // 默认curInode 是 0
       this.curInode = 0
 
-      _this.tableData = await encryptlist(tdata,_this)
+      _this.tableData = await encryptlist(_this.type,tdata, _this)
 
     },
     // 下载任务
-    download(index, row) {
-      var userId = this.userId
-      var right = this
-      download(right,{
-        userId,
-        row,
-        index
+    async download(index, row) {
+
+      var fileKey = stringtoUint8Array(row.fileKey)
+      var clientRandomValue = stringtoUint8Array(localStorage.getItem("clientRandomValue"))
+      var filename = row.filename
+      let _this = this
+      _this.clickingIdx = index
+      _this.percentage = 0
+      await request.get(
+        "/files/" + this.userId + "/" + row.inode + "/blocks"
+      ).then(async function (res) {
+        console.log(JSON.stringify(res))
+        if (res.code != null && res.code !== 2000) {
+          alert(res.message);
+        }
+
+        // 创建一个数组
+        let blocks = new Array(res.data.length)
+        var num = 0
+        for (var j in res.data) {
+          var blockUrl = res.data[j]
+          await axios.get(blockUrl, {responseType: 'arraybuffer'}).then(async function (block) {
+            blocks[j] = await decryptKey(fileKey, clientRandomValue, block.data)
+            num++
+            _this.percentage = parseInt(num / res.data.length * 100)
+          })
+
+        }
+
+        let blob = new Blob(blocks, {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8"});
+        var endTime = new Date()
+        // console.log("下载时间: " + (parseInt(endTime - startTime)).toString()+ "ms，下载大小："+dataSize+"B")
+        if (window.navigator.msSaveOrOpenBlob) {
+          // IE10+下载
+          navigator.msSaveOrBlob(blob, filename);
+        } else {
+          // 非IE10+下载
+          let link = document.createElement('a');
+          link.href = window.URL.createObjectURL(blob);
+          link.download = filename;
+          document.body.appendChild(link);
+          var evt1 = document.createEvent("MouseEvents");
+          evt1.initEvent("click", false, false);
+          link.dispatchEvent(evt1);//释放URL 对象
+          document.body.removeChild(link);
+        }
       })
     },
     // 删除文件
     deleteFile(index, row) {
-      alert(index)
       let _this = this
       request.delete("/files/" + this.userId + "/" + row.inode).then(function (res) {
         if (res.code === 2000) {
-          alert("请求后端成功" + JSON.stringify(res))
+          // alert("请求后端成功" + JSON.stringify(res))
           _this.tableData.splice(index, 1)
         }
       })
@@ -301,7 +417,7 @@ export default {
       if (row.type === "DIR") {
         this.tableData = []
         for (var i = 0; i < row.childrenFiles.length; i++) {
-          this.tableData.concat(await encryptlist(row.childrenFiles[i],this))
+          this.tableData.concat(await encryptlist(row.childrenFiles[i], this))
         }
 
         this.breadlist.push({"name": row.filename, "inode": row.inode, "parent_inode": this.curInode})
@@ -321,19 +437,6 @@ export default {
       this.breadlist.pop()
 
       let a = this.fromData
-      // let b = []
-      //返回上一级未完全完成 TODO
-      // for (var i = 0; i < this.breadlist.length; i++) {
-      //   for (var j = 0; j < a.length; j++){
-      //     if(this.breadlist[i].inode===a[j].inode){
-      //       b=a[j].childrenFiles
-      //       console.log(JSON.stringify(b))
-      //   }
-      //   }
-      // }
-      // this.tableData = await encryptlist(a)
-
-
     }
   }
 }

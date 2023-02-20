@@ -18,22 +18,11 @@ import java.util.Set;
  * @date： 2022/5/24
  * @version: 1.0
  */
-public class BlockServiceImpl implements BlockService {
+public abstract class BlockServiceImpl implements BlockService {
     @Autowired
     FileBlockRepository fileBlockRepository;
 
 
-
-
-    @Override
-    public boolean uploadBlock(FileBlockPo fileBlockPo) throws Exception {
-        return false;
-    }
-
-    @Override
-    public byte[] downloadBlock(FileBlockPo fileBlockPo) throws Exception {
-        return null;
-    }
 
     @Override
     public FileBlockPo save(FileBlockPo fileBlockPo) {
@@ -45,10 +34,14 @@ public class BlockServiceImpl implements BlockService {
         return fileBlockRepository.findByParentFilePo(filePo);
     }
 
-    @Override
-    public void deleteBlock(FileBlockPo fileBlockPo) {
 
+
+    @Override
+    public boolean existsByFingerprint(String fingerprint){
+        return fileBlockRepository.existsByFingerprint(fingerprint);
     }
+
+
 
 
 }

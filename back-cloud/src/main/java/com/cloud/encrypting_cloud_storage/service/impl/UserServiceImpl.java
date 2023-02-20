@@ -94,6 +94,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public long findUsedCapacity(String email) {
+        return userRepository.findUsedCapacityByEmail(email);
+    }
+
+    @Override
     public UserPo findById(Long id) {
         Optional<UserPo> byId = userRepository.findById(id);
         return byId.orElse(null);

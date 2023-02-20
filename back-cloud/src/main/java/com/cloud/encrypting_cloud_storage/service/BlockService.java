@@ -14,14 +14,16 @@ import java.util.Set;
 public interface BlockService {
     /**
      * 上传文件块到云平台
+     *
      * @param fileBlockPo 文件块
      * @return
      * @throws Exception
      */
-    boolean uploadBlock(FileBlockPo fileBlockPo) throws Exception;
+    String uploadBlock(FileBlockPo fileBlockPo) throws Exception;
 
     /**
      * 下载文件块数据
+     *
      * @param fileBlockPo
      * @return
      * @throws Exception
@@ -30,6 +32,7 @@ public interface BlockService {
 
     /**
      * 保存文件块信息到数据库
+     *
      * @param fileBlockPo
      * @return
      */
@@ -37,10 +40,15 @@ public interface BlockService {
 
     /**
      * 找到文件的所有块
+     *
      * @param filePo
      * @return
      */
     Set<FileBlockPo> findFileAllBlock(FilePo filePo);
 
     void deleteBlock(FileBlockPo fileBlockPo);
+
+    boolean existsByFingerprint(String fingerprint);
+
+    String getFingerprintUrl(String fingerprint);
 }

@@ -60,7 +60,7 @@ public class QiniuFileBlockServiceImpl extends BlockServiceImpl implements Initi
 
 
     @Override
-    public boolean uploadBlock(FileBlockPo fileBlockPo) throws Exception {
+    public String uploadBlock(FileBlockPo fileBlockPo) throws Exception {
         log.debug("-------------------"+fileBlockPo.getFingerprint());
         Response response = uploadManager.put(fileBlockPo.getData(), fileBlockPo.getFingerprint(), getUploadToken());
         int retry = 0;
@@ -68,7 +68,7 @@ public class QiniuFileBlockServiceImpl extends BlockServiceImpl implements Initi
             response = uploadManager.put(fileBlockPo.getData(), fileBlockPo.getFingerprint(), getUploadToken());
             retry++;
         }
-        return true;
+        return "暂时返回";
     }
 
     /**
@@ -82,5 +82,15 @@ public class QiniuFileBlockServiceImpl extends BlockServiceImpl implements Initi
 
         final Response response = client.get(fileBlockPo.getFingerprint());
         return response.body();
+    }
+
+    @Override
+    public void deleteBlock(FileBlockPo fileBlockPo) {
+
+    }
+
+    @Override
+    public String getFingerprintUrl(String fingerprint) {
+        return null;
     }
 }

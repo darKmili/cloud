@@ -30,7 +30,7 @@ async function readAsBinaryArray(file) {
 }
 
 export function download(right, {userId, row, index}) {
-  var fs = require("fs");
+  var total = row.size
   let textEncoder = new TextEncoder();
   var webSocketUrl = 'ws://127.0.0.1:8081/cloud/download/' + userId;
   var socket = new WebSocket(webSocketUrl);
@@ -79,8 +79,9 @@ export function download(right, {userId, row, index}) {
       console.log("解密成功")
       datalist.push(data)
       dataSize += data.byteLength
+      // row.percentage = dataSize/row.size
       idx += 1
-      right.tableData[index].percentage = (idx / row.blockSize).toFixed(2) * 100
+      row.percentage = (idx / row.blockSize).toFixed(2) * 100
       socket.send(JSON.stringify({"inode": row.inode, "index": idx}));
     }
   }

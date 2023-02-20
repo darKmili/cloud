@@ -18,4 +18,6 @@ public interface FileBlockRepository extends JpaRepository<FileBlockPo,Long> {
      * @return
      */
     Set<FileBlockPo> findByParentFilePo(FilePo filePo);
+
+    boolean existsByFingerprint(String fingerprint);
 }

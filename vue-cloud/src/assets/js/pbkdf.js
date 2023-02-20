@@ -18,8 +18,7 @@ export function stringtoUint8Array(theStr) {
     arr.push(theStr.charCodeAt(idx));
   }
 
-  var tmpUint8Array = new Uint8Array(arr);
-  return tmpUint8Array
+  return new Uint8Array(arr)
 }
 
 /**
@@ -32,15 +31,15 @@ export async function pbkdf2Function(password, clientRandomValue) {
 
   // var randomValueLength = clientRandomValue.byteLength;
   var randomValueLength = 16;
-  console.log(clientRandomValue.length)
+  // console.log(clientRandomValue.length)
   // clientRandomValue = uint8ArrayToString(clientRandomValue);
-  console.log("clientRandomValue:"+clientRandomValue)
+  // console.log("clientRandomValue:"+clientRandomValue)
   //Generate Padding String ("SZTUBIGDATA"|| Padding || clientRandomValue)with length 200
   var shaString = "SZTUBIGDATA";
   var padLength = 200 - randomValueLength;
   shaString = shaString.padEnd(padLength, 'A');
   shaString = shaString + clientRandomValue;
-  console.log("shaString Length:" + shaString.length)
+  // console.log("shaString Length:" + shaString.length)
 
   const textEncoder = new TextEncoder();
   const shaMessage = textEncoder.encode(shaString);
@@ -86,8 +85,7 @@ export async function encryptKey(keyArr, clientRandomValue, theKeyToEnc) {
     true,
     ["encrypt", "decrypt"]);
 
-  const encryptedData = await crypto.subtle.encrypt(params, aesKey, theKeyToEnc);
-  return encryptedData
+  return await crypto.subtle.encrypt(params, aesKey, theKeyToEnc)
 }
 
 export async function decryptKey(keyArr, clientRandomValue, theKeyToDecrypt) {

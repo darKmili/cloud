@@ -55,5 +55,12 @@ public interface UserService {
      */
     UserPo initUser(UserPo userPo);
 
+    /**
+     * 获取当前使用容量
+     * @param email
+     * @return
+     */
+    long findUsedCapacity(String email);
+
 
 }

@@ -1,5 +1,6 @@
 package com.cloud.encrypting_cloud_storage.util;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Random;
 
 /**
@@ -48,6 +49,44 @@ public class MyStringUtil {
             sb.append(data[i]);
         }
         return sb.toString();
+    }
+
+
+
+
+    /**
+     * 将表示16进制值的字符串转换为byte数组， 和public static String byteArr2HexStr(byte[] arrB)
+     * 互为可逆的转换过程
+     *
+     * @param strIn
+     * 需要转换的字符串
+     * @return 转换后的byte数组
+     * @throws Exception
+     * 本方法不处理任何异常，所有异常全部抛出
+     */
+    public static byte[] hexStr2ByteArr(String strIn) throws Exception {
+        byte[] arrB = strIn.getBytes();
+        int iLen = arrB.length;
+
+        // 两个字符表示一个字节，所以字节数组长度是字符串长度除以2
+        byte[] arrOut = new byte[iLen / 2];
+        for (int i = 0; i < iLen; i = i + 2) {
+            String strTmp = new String(arrB, i, 2);
+            arrOut[i / 2] = (byte) Integer.parseInt(strTmp, 16);
+        }
+        return arrOut;
+    }
+
+
+    public static int bytesToInt(byte[] a){
+        int ans=0;
+        for(int i=0;i<4;i++){
+            //左移 8 位
+            ans<<=8;
+            //保存 byte 值到 ans 的最低 8 位上
+            ans|=a[i];
+        }
+        return ans;
     }
 
 

@@ -2,30 +2,35 @@
   <el-container>
     <el-header>
       <el-menu
-        default-active="1"
+        :default-active="$route.path"
+        router
         class="el-menu-vertical-demo"
+
       >
-        <el-menu-item index="1">
+        <el-menu-item index="/right" >
           <i class="el-icon-tickets"></i>
           <span slot="title">全部文件</span>
         </el-menu-item>
-        <el-menu-item index="2" >
+        <el-menu-item index="/picture" >
           <i class="el-icon-picture"></i>
           <span slot="title">图片</span>
         </el-menu-item>
-        <el-menu-item index="3" >
+        <el-menu-item index="/document" >
           <i class="el-icon-document"></i>
           <span slot="title" >文档</span>
         </el-menu-item>
-        <el-menu-item index="4">
+        <el-menu-item index="/camera">
           <i class="el-icon-video-camera"></i>
           <span slot="title" >视频</span>
         </el-menu-item>
-        <el-menu-item index="5">
+        <el-menu-item index="/music">
           <i class="el-icon-service"></i>
           <span slot="title" >音乐</span>
         </el-menu-item>
-
+        <el-menu-item index="/fileShare">
+          <i class="el-icon-chat-square"></i>
+          <span slot="title" >接受文件</span>
+        </el-menu-item>
       </el-menu>
     </el-header>
     <el-main></el-main>
@@ -41,7 +46,7 @@
 
 <script>
 import request from "../assets/js/request";
-
+import axios from "axios";
 export default {
   name: "Left",
   data() {

@@ -170,11 +170,11 @@ export default {
           _this.$alert('登陆成功', '提示', {
             confirmButtonText: '确定',
             callback: action => {
-              _this.$router.push({path: '/Home'})
+              _this.$router.push({path: '/home'})
             }
           })
           setTimeout(() => {
-            _this.$router.push({path: '/Home'})
+            _this.$router.push({path: '/home'})
           }, 1000)
         } else {
           _this.loading = false
@@ -198,10 +198,10 @@ export default {
       this.$refs.ruleForm.resetFields();
     },
     register() {
-      this.$router.push({path: 'Register'})
+      this.$router.push({path: '/register'})
     },
     home() {
-      this.$router.push({path: '/Home'})
+      this.$router.push({path: '/home'})
     }
   }
 }

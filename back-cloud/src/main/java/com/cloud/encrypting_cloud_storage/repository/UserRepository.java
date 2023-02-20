@@ -50,6 +50,11 @@ public interface UserRepository extends JpaRepository<UserPo, Long>, JpaSpecific
      */
     void deleteUserByEmailIs(String email);
 
+    @Query(value = "select u.used_capacity from user as u where u.email=?1",nativeQuery = true)
+    long findUsedCapacityByEmail(String email);
+
+
+
 
 
 

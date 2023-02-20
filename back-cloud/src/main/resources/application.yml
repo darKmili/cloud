@@ -73,7 +73,7 @@ ceph:
   secretKey: SvSp8mxh2XiiKZnc8Je6PuyCIxOBkn6xZWOLrBgd
   bucket: cloud-bucket
   ## 填写域名或者IP
-  host: 10.108.14.53:80
+  host: 192.168.1.112:80
 
 jwt:
   #token返回头部

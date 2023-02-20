@@ -11,6 +11,7 @@
   </span>
       <el-dropdown-menu slot="dropdown">
         <el-dropdown-item>设置</el-dropdown-item>
+        <el-dropdown-item divided><a @click="">好友列表</a></el-dropdown-item>
         <el-dropdown-item divided><a @click="loginout">退出登陆</a></el-dropdown-item>
       </el-dropdown-menu>
     </el-dropdown>
