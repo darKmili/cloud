@@ -4,6 +4,7 @@ import cn.hutool.core.collection.ListUtil;
 import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
+import com.amazonaws.util.Base64;
 import com.amazonaws.util.IOUtils;
 import com.cloud.encrypting_cloud_storage.exceptions.ApiException;
 import com.cloud.encrypting_cloud_storage.models.po.FileBlockPo;
@@ -51,11 +52,12 @@ public class CephFileBlockServiceImpl extends BlockServiceImpl {
 
     @Override
     public String uploadBlock(FileBlockPo fileBlockPo) throws Exception {
-        uploadBlock(fileBlockPo.getData(),fileBlockPo.getFingerprint());
+
+        uploadBlock(fileBlockPo.getData(), fileBlockPo.getFingerprint());
         fileBlockPo.setBucket(bucketName);
         java.util.Date expiration = new java.util.Date();
         long expTimeMillis = Instant.now().toEpochMilli();
-        expTimeMillis += 1000 * 60 * 60;
+        expTimeMillis += 1000 * 60 * 60 * 3;
         expiration.setTime(expTimeMillis);
 
         // Generate the presigned URL.
@@ -64,21 +66,24 @@ public class CephFileBlockServiceImpl extends BlockServiceImpl {
                         .withMethod(HttpMethod.GET)
                         .withExpiration(expiration);
         URL url = amazonS3.generatePresignedUrl(generatePresignedUrlRequest);
+        fileBlockPo.setUrl(url.toString());
         return url.toString();
     }
 
     @Async
-    public void uploadBlock(byte[] data,String fingerprint) throws Exception{
+    public void uploadBlock(byte[] data, String fingerprint) throws Exception {
+        fingerprint = Base64.encodeAsString(fingerprint.getBytes());
         InputStream inputStream = new ByteArrayInputStream(data);
 
         ObjectMetadata objectMetadata = new ObjectMetadata();
         objectMetadata.setContentLength(inputStream.available());
         PutObjectResult putObjectResult = amazonS3.putObject(bucketName, fingerprint, inputStream, objectMetadata);
+        log.info(putObjectResult.toString());
     }
 
     @Override
     public byte[] downloadBlock(FileBlockPo fileBlockPo) throws Exception {
-        String fileName = fileBlockPo.getFingerprint();
+        String fileName = Base64.encodeAsString(fileBlockPo.getFingerprint().getBytes());
 
         S3Object object = amazonS3.getObject(bucketName, fileName);
         log.debug("Storage s3 api, get object result :{}", object);
@@ -123,25 +128,16 @@ public class CephFileBlockServiceImpl extends BlockServiceImpl {
         return swapStream.toByteArray();
     }
 
-    /**
-     * 检查储存空间是否已创建
-     */
-    private void checkBucket() {
 
-        if (amazonS3.doesBucketExist(bucketName)) {
-            log.debug("Storage s3 api, bucketName is found: " + bucketName);
-        } else {
-            log.warn("Storage s3 api, bucketName is not exist, create it: " + bucketName);
-            amazonS3.createBucket(bucketName);
-        }
-    }
 
     @Override
     @Async("defaultThreadPoolExecutor")
     public void deleteBlock(FileBlockPo fileBlockPo) {
+
+        String fileName = Base64.encodeAsString(fileBlockPo.getFingerprint().getBytes());
         try {
-            amazonS3.deleteObject(bucketName, fileBlockPo.getFingerprint());
-        }catch (AmazonS3Exception e){
+            amazonS3.deleteObject(bucketName, fileName);
+        } catch (AmazonS3Exception e) {
             log.error(e.getMessage());
         }
     }
@@ -149,15 +145,16 @@ public class CephFileBlockServiceImpl extends BlockServiceImpl {
 
     @Override
     public String getFingerprintUrl(String fingerprint) {
+        String fileName = Base64.encodeAsString(fingerprint.getBytes());
         java.util.Date expiration = new java.util.Date();
         long expTimeMillis = Instant.now().toEpochMilli();
-        expTimeMillis += 1000 * 60 * 60;
+        expTimeMillis += 1000 * 60 * 60 * 3;
         expiration.setTime(expTimeMillis);
 
         // Generate the presigned URL.
         System.out.println("Generating pre-signed URL.");
         GeneratePresignedUrlRequest generatePresignedUrlRequest =
-                new GeneratePresignedUrlRequest(bucketName, fingerprint)
+                new GeneratePresignedUrlRequest(bucketName, fileName)
                         .withMethod(HttpMethod.GET)
                         .withExpiration(expiration);
         URL url = amazonS3.generatePresignedUrl(generatePresignedUrlRequest);

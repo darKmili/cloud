@@ -49,26 +49,6 @@ function buf2hex(buffer) {
 }
 
 
-function mergeArrayBuffer(...arrays) {
-  // 先将数据封装为Uint8Array
-  let uint8Arr = new Array(4)
-  let totalLen = 0
-  for (let i = 0; i < arrays; i++) {
-    uint8Arr[i] = new Uint8Array(arrays[i])
-    totalLen+=uint8Arr[i].length
-  }
-  let sab = new SharedArrayBuffer(totalLen);
-  let result = new Uint8Array(sab)
-
-  // Build the new array
-  let offset = 0
-  for (let arr in uint8Arr) {
-    result.set(arr, offset)
-    offset += arr.length
-  }
-  console.log(result)
-  return result.buffer
-}
 
 function arrayBufferToShareArrayBuffer(array){
   let sab = new SharedArrayBuffer(array.byteLength);
@@ -81,8 +61,7 @@ function arrayBufferToShareArrayBuffer(array){
 //大端模式 4字节
 //number 要转换的整形数值
 function intToByteBig(number) {
-  let sab = new SharedArrayBuffer(4);
-  var bytes = new Uint8Array(sab);
+  var bytes = new Uint8Array(4);
   bytes[3] = (number & 0xff)
   bytes[2] = (number >> 8 & 0xff)
   bytes[1] = (number >> 16 & 0xff)
@@ -137,21 +116,21 @@ self.onmessage = async ({data}) => {
     // let fingerprintString = uint8ArrayToString(new Uint8Array(fingerprint))
     // let encryptedDataString = uint8ArrayToString(new Uint8Array(encryptedData))
 
-    // let arrayBuffer = concatenate(fingerprint,intToByteBig(data.idx),intToByteBig(data.size),encryptedData);
+    let arrayBuffer = concatenate(fingerprint,intToByteBig(data.idx),intToByteBig(data.size),encryptedData);
     // var t3 = new Date()
     // console.log("数据组合时间"+(t3-t2))
-    // postMessage({
-    //   opt: 'block',
-    //   data: arrayBuffer
-    // }, [arrayBuffer])
-
     postMessage({
       opt: 'block',
-      // fingerprint: arrayBufferToShareArrayBuffer( fingerprint),
-      // idx:intToByteBig(data.idx),
-      encryptedData: encryptedData,
-      // size:intToByteBig(data.size)
-    },[encryptedData])
+      data: arrayBuffer
+    }, [arrayBuffer])
+
+    // postMessage({
+    //   opt: 'block',
+    //   // fingerprint: arrayBufferToShareArrayBuffer( fingerprint),
+    //   // idx:intToByteBig(data.idx),
+    //   encryptedData: encryptedData,
+    //   // size:intToByteBig(data.size)
+    // },[encryptedData])
   }
 
   function concatenate(...arrays) {

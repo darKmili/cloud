@@ -132,7 +132,9 @@ export default {
   }
   ,
   created() {
-
+    if (this.socket === null) {
+      this.socket = new WebSocket('ws://127.0.0.1:8081/cloud/upload/' + localStorage.getItem("uid"))
+    }
   },
 
 
@@ -241,9 +243,9 @@ export default {
 
 
       // 开始时间
-      // var startTime = new Date()
+      var startTime = new Date()
 
-      // console.log("开始时间戳：" + startTime.getTime())
+      console.log("开始时间戳：" + startTime.getTime())
       let _this = this
       var paragraph = this.paragraph;
       //文件对象赋值
@@ -277,6 +279,7 @@ export default {
       // 用来接受加密算法返回的结果
       worker.onmessage = async (ev) => {
         var data = ev.data
+        console.log(data)
         if (data.opt === 'fileMetadata') {
           // 得到加密得文件信息数据，将加密文件信息数据发送到后台
           console.log("文件原数据发送")
@@ -297,18 +300,7 @@ export default {
         } else if (data.opt === 'block') {
           t3 = new Date()
           // TODO 将验证与发送数据合二为一
-          // console.log("加密线程时间" + (t3 - t2))
-          // console.log("发送前得时间戳" + t3.getTime())
-          // _this.socket.send(data.data)
-          // opt: 'block',
-          //   fingerprint: fingerprint,
-          //   idx:intToByteBig(data.idx),
-          //   encryptedData:encryptedData,
-          //   size:intToByteBig(data.size)
-          // _this.socket.send(data.fingerprint)
-          // _this.socket.send(data.idx)
-          // _this.socket.send(data.size)
-          _this.socket.send(data.encryptedData)
+          _this.socket.send(data.data)
         }
       }
 
@@ -327,21 +319,21 @@ export default {
         // 返回文件上传信息，主要用于反馈进度，让用户知道数据上传的具体进度
         var tip = JSON.parse(msg.data)
         _this.speedOfProgress = Math.ceil((tip.idx + 1) / blockSize * 100)
-        if (_this.speedOfProgress === 100) {
+        if (tip.idx+1 === blockSize) {
           var endTime = new Date()
           console.log("发送时间间隔")
           console.log(Math.abs(endTime - startTime) / 1000)
           var unit = 'B'
           var size = fileData.size
-          if (size > 1024) {
+          if (size >= 1024) {
             size = Math.ceil(size / 1024)
             unit = 'KB'
           }
-          if (size > 1024) {
+          if (size >= 1024) {
             size = Math.ceil(size / 1024)
             unit = 'MB'
           }
-          if (size > 1024) {
+          if (size >= 1024) {
             size = Math.ceil(size / 1024)
             unit = 'GB'
           }
@@ -437,10 +429,10 @@ export default {
     },
     // 关闭上传框的时做的事件
     closeSocket() {
-      if (this.socket != null) {
-        console.log("端口连接")
-        this.socket.close();
-      }
+      // if (this.socket != null) {
+      //   console.log("端口连接")
+      //   this.socket.close();
+      // }
       this.textarea = "";
       this.socket = null;
     }

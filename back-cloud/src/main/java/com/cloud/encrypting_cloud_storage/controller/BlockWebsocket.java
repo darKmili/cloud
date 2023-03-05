@@ -28,6 +28,8 @@ import javax.websocket.*;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.concurrent.ConcurrentHashMap;
@@ -214,7 +216,9 @@ public class BlockWebsocket {
 //            return;
 //        }
         // 解析字节数据 20指纹+4索引+4块大小+数据
-        String fingerprint = new String(message,0,20);
+        String fingerprint =  new String(message,0,20, StandardCharsets.US_ASCII);
+
+
 
 
         int idx = MyStringUtil.bytesToInt(Arrays.copyOfRange(message,20,24));
@@ -247,16 +251,18 @@ public class BlockWebsocket {
                     blockPo.setUrl(url);
                     blockPo = blockService.save(blockPo);
                 }
+                blockPo.setData(null);
+                try {
+                    sendMessage(JSONObject.toJSONString(blockPo));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             } catch (Exception e) {
+                redisTemplate.opsForValue().set(blockPo.getFingerprint(), String.valueOf(0));
                 e.printStackTrace();
             }
         }
-        blockPo.setData(null);
-        try {
-            sendMessage(JSONObject.toJSONString(blockPo));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
 
 
 

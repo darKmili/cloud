@@ -46,7 +46,6 @@ export default new Router({
           path: '/fileShare',
           name: 'FileShare',
           component: FileShare
-
         }
 
       ]

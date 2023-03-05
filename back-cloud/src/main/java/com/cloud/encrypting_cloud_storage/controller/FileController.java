@@ -5,6 +5,7 @@ import com.cloud.encrypting_cloud_storage.enums.StatusEnum;
 import com.cloud.encrypting_cloud_storage.models.ApiResponse;
 import com.cloud.encrypting_cloud_storage.models.po.FileBlockPo;
 import com.cloud.encrypting_cloud_storage.models.po.FilePo;
+import com.cloud.encrypting_cloud_storage.models.po.ShareFilePo;
 import com.cloud.encrypting_cloud_storage.models.po.UserPo;
 import com.cloud.encrypting_cloud_storage.repository.FileBlockRepository;
 import com.cloud.encrypting_cloud_storage.repository.FileRepository;
@@ -141,9 +142,58 @@ public class FileController extends BaseController{
         final FilePo filePo = fileService.findFileByInodeAndUserId(inode, userId);
         String[] arr = new String[filePo.getBlockSize()];
         for (FileBlockPo fileBlock : filePo.getFileBlocks()) {
-            arr[fileBlock.getIdx()] = blockService.getFingerprintUrl(fileBlock.getFingerprint());
+            if (fileBlock.getUrl()==null|| Objects.equals(fileBlock.getUrl(), "")){
+                arr[fileBlock.getIdx()] = blockService.getFingerprintUrl(fileBlock.getFingerprint());
+            }else {
+                arr[fileBlock.getIdx()] = fileBlock.getUrl();
+            }
+//            arr[fileBlock.getIdx()] = blockService.getFingerprintUrl(fileBlock.getFingerprint());
+//            arr[fileBlock.getIdx()] = fileBlock.getUrl();
         }
         return ApiResponse.ofSuccess(arr);
     }
+
+    @PostMapping("/{fileInode}/share")
+    @ApiOperation("分享该文件给某个用户")
+    public ApiResponse createShareFile(@PathVariable("userId") Long userId,@PathVariable("fileInode") Long inode,@RequestBody Long targetUserId){
+
+        final UserPo sharer = new UserPo();
+        sharer.setId(userId);
+
+        final UserPo targetUser = new UserPo();
+        targetUser.setId(targetUserId);
+
+        final FilePo filePo = new FilePo();
+        filePo.setInode(inode);
+
+        final ShareFilePo shareFile = shareFileService.createShareFile(sharer, targetUser, filePo);
+
+        return ApiResponse.ofSuccess(shareFile);
+    }
+
+    @GetMapping("/share/1")
+    @ApiOperation("获取所有被分享文件")
+    public ApiResponse getByShareFiles(@PathVariable("userId") Long userId){
+        final UserPo userPo = new UserPo();
+        userPo.setId(userId);
+        final List<Map> byShareFiles = shareFileService.getByShareFiles(userPo);
+        return ApiResponse.ofSuccess(byShareFiles);
+    }
+
+
+    @GetMapping("/share/2")
+    @ApiOperation("获取所有分享出去的文件")
+    public ApiResponse getShareFiles(@PathVariable("userId") Long userId){
+        final UserPo userPo = new UserPo();
+        userPo.setId(userId);
+        final List<Map> shareFiles = shareFileService.getShareFiles(userPo);
+        return ApiResponse.ofSuccess(shareFiles);
+    }
+
+
+
+
+
+
 
 }

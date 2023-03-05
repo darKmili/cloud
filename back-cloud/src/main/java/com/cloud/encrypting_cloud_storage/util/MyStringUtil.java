@@ -78,15 +78,10 @@ public class MyStringUtil {
     }
 
 
-    public static int bytesToInt(byte[] a){
-        int ans=0;
-        for(int i=0;i<4;i++){
-            //左移 8 位
-            ans<<=8;
-            //保存 byte 值到 ans 的最低 8 位上
-            ans|=a[i];
-        }
-        return ans;
+
+
+    public static int bytesToInt(byte[] bytes){
+        return bytes[0]<<24|(bytes[1]&0xff)<<16|(bytes[2]&0xff)<<8|(bytes[3]&0xff);
     }
 
 

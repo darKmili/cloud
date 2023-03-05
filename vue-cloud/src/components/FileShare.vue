@@ -32,6 +32,9 @@
 
 <script>
 
+import request from "../assets/js/request";
+import {encryptlist} from "../assets/js/pbkdf";
+
 export default {
   methods: {
     tableRowClassName({row, rowIndex}) {
@@ -41,8 +44,34 @@ export default {
         return 'success-row';
       }
       return '';
+    },
+
+    async init() {
+      let _this = this
+      this.userId = localStorage.getItem("uid")
+
+      let tdata = []
+      await request.get("/files/" + _this.userId+"/share/1").then(function (res) {
+        console.log(JSON.stringify(res))
+        if (res.code != null && res.code !== 2000) {
+          alert(res.message);
+        }
+        tdata = res.data
+      })
+
+      console.log(JSON.stringify(tdata))
+      this.fromData = tdata
+      // 默认curInode 是 0
+      this.curInode = 0
+      _this.tableData = await encryptlist(_this.type,tdata, _this)
+
     }
   },
+  // 创建时，向后端发起请求，获取分享文件的信息
+  created() {
+
+  }
+  ,
   data() {
     return {
       tableData: [{

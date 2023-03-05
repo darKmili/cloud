@@ -45,8 +45,6 @@
 </template>
 
 <script>
-import request from "../assets/js/request";
-import axios from "axios";
 export default {
   name: "Left",
   data() {

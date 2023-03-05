@@ -71,6 +71,4 @@ public interface FileRepository extends JpaRepository<FilePo, Long> {
 
     FilePo findByInodeAndUser(Long inode, UserPo userPo);
 
-
-
 }
