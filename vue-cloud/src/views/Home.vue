@@ -5,7 +5,7 @@
     </el-header>
     <el-container>
       <el-aside>
-        <Left></Left>
+        <Left v-bind:total="total" v-bind:used="used"></Left>
       </el-aside>
       <el-main>
        <router-view></router-view>
@@ -13,22 +13,22 @@
     </el-container>
   </el-container>
 </template>
-
 <script>
 
 import Header from '../components/Header'
-import Right from '../components/Right'
 import Left from '../components/Left'
 
 export default {
   name: "Home",
 
   data() {
-    return {}
+    return {
+      total:0,
+      used:0,
+    }
   },
   components: {
     Header,
-    Right,
     Left
   },
   created() {
@@ -42,6 +42,9 @@ export default {
       }).catch(() => {
         this.$router.push({path: '/'})
       });
+    }else {
+      this.used = Math.ceil(parseFloat(localStorage.getItem("usedCapacity"))/1024/1024);
+      this.total = Math.ceil(parseFloat(localStorage.getItem("totalCapacity"))/1024/1024);
     }
 
   },

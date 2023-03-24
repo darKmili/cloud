@@ -1,4 +1,4 @@
-<template>
+<template >
   <el-container>
     <el-header>
       <el-menu
@@ -47,16 +47,18 @@
 <script>
 export default {
   name: "Left",
+  props:{
+    used:0,
+    total:0,
+  },
   data() {
     return {
-      used:0,
-      total:0,
+
     }
   },
 
   created() {
-    this.used = Math.ceil(parseFloat(localStorage.getItem("usedCapacity"))/1024/1024);
-    this.total = Math.ceil(parseFloat(localStorage.getItem("totalCapacity"))/1024/1024);
+
   },
 
 }

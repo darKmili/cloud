@@ -61,13 +61,13 @@ logging:
 
 qiniu:
   ## 此处填写你自己的七牛云 access key
-  accessKey: RRwt79cxbDBkVBPo92ZnIlNiynBCLBDM5RPQ3MHr
+  accessKey:
   ## 此处填写你自己的七牛云 secret key
-  secretKey: nKFMamwaBO3ev87_i68DQwHnMnIWUm7qQKtj8VNs
+  secretKey:
   ## 此处填写你自己的七牛云 bucket
-  bucket: xfdwjd1997leon
+  bucket:
   ## 此处填写你自己的七牛云 域名
-  prefix: raxes0mqf.bkt.clouddn.com
+  prefix:
 ceph:
   accessKey: RXX2H1XCSUHM3VTR7DEH
   secretKey: VsxM8RqRfQCmfHg4GO6uTRaidEp90lWedgVzWBdf

@@ -213,6 +213,11 @@ export default {
             link.dispatchEvent(evt1);//释放URL 对象
             document.body.removeChild(link);
           }
+
+        setTimeout(function (){
+          _this.clickingIdx = null
+        },3000)
+
         }
       }
 

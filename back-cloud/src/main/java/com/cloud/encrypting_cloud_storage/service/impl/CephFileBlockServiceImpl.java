@@ -53,6 +53,7 @@ public class CephFileBlockServiceImpl extends BlockServiceImpl {
     @Override
     public String uploadBlock(FileBlockPo fileBlockPo) throws Exception {
 
+        // key需要是Base64编码
         uploadBlock(fileBlockPo.getData(), fileBlockPo.getFingerprint());
         fileBlockPo.setBucket(bucketName);
         java.util.Date expiration = new java.util.Date();
@@ -60,9 +61,9 @@ public class CephFileBlockServiceImpl extends BlockServiceImpl {
         expTimeMillis += 1000 * 60 * 60 * 3;
         expiration.setTime(expTimeMillis);
 
-        // Generate the presigned URL.
+        // Generate the presigned URL.// key需要是Base64编码
         GeneratePresignedUrlRequest generatePresignedUrlRequest =
-                new GeneratePresignedUrlRequest(bucketName, fileBlockPo.getFingerprint())
+                new GeneratePresignedUrlRequest(bucketName,  Base64.encodeAsString(fileBlockPo.getFingerprint().getBytes()))
                         .withMethod(HttpMethod.GET)
                         .withExpiration(expiration);
         URL url = amazonS3.generatePresignedUrl(generatePresignedUrlRequest);

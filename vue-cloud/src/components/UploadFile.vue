@@ -370,6 +370,10 @@ export default {
       let fileData = this.fileObject;
       //切换保存标识的状态
       this.uploadFlag = false;
+
+      var start = new Date()
+      var file1 = await this.readAsBinaryString(fileData);
+      console.log(new Date()-start)
       //读取文件前128KB数据利用SHA-256生成256位文件密钥
       var v = await this.readAsBinaryString(fileData, 0, 1024 * 128);
       const sha256Key = await crypto.subtle.digest('SHA-256', v)

@@ -142,13 +142,12 @@ public class FileController extends BaseController{
         final FilePo filePo = fileService.findFileByInodeAndUserId(inode, userId);
         String[] arr = new String[filePo.getBlockSize()];
         for (FileBlockPo fileBlock : filePo.getFileBlocks()) {
-            if (fileBlock.getUrl()==null|| Objects.equals(fileBlock.getUrl(), "")){
-                arr[fileBlock.getIdx()] = blockService.getFingerprintUrl(fileBlock.getFingerprint());
-            }else {
-                arr[fileBlock.getIdx()] = fileBlock.getUrl();
-            }
-//            arr[fileBlock.getIdx()] = blockService.getFingerprintUrl(fileBlock.getFingerprint());
-//            arr[fileBlock.getIdx()] = fileBlock.getUrl();
+//            if (fileBlock.getUrl()==null|| Objects.equals(fileBlock.getUrl(), "")){
+//                arr[fileBlock.getIdx()] = blockService.getFingerprintUrl(fileBlock.getFingerprint());
+//            }else {
+//                arr[fileBlock.getIdx()] = fileBlock.getUrl();
+//            }
+            arr[fileBlock.getIdx()] = blockService.getFingerprintUrl(fileBlock.getFingerprint());
         }
         return ApiResponse.ofSuccess(arr);
     }

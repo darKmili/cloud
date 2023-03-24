@@ -11,7 +11,7 @@
  Target Server Version : 50717
  File Encoding         : 65001
 
- Date: 07/06/2022 16:11:30
+ Date: 24/03/2023 14:38:16
 */
 
 SET NAMES utf8mb4;
@@ -34,21 +34,14 @@ CREATE TABLE `file`  (
   `type` enum('FILE','DIR') CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT 'FILE' COMMENT '文件类型',
   `user_id` bigint(20) UNSIGNED NULL DEFAULT NULL COMMENT '文件所属用户id',
   `block_size` int(11) NULL DEFAULT NULL COMMENT '文件块的数量',
-  `file_key` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '被加密的文件密钥',
+  `file_key` varbinary(255) NULL DEFAULT NULL COMMENT '被加密的文件密钥',
   PRIMARY KEY (`inode`) USING BTREE,
   INDEX `file_ibfk_1`(`user_id`) USING BTREE,
   INDEX `file_ibfk_2`(`parent_inode`) USING BTREE,
   CONSTRAINT `file_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `file_ibfk_2` FOREIGN KEY (`parent_inode`) REFERENCES `file` (`inode`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB AUTO_INCREMENT = 31 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 994 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
--- ----------------------------
--- Records of file
--- ----------------------------
-INSERT INTO `file` VALUES (0, 'root', '2022-05-29 22:19:34.951910', NULL, NULL, NULL, NULL, NULL, 'UPLOADED', 'DIR', NULL, NULL, NULL);
-
-SET SQL_SAFE_UPDATES = 0;
-Update `file` SET inode=0 WHERE filename='root';
 -- ----------------------------
 -- Table structure for file_block
 -- ----------------------------
@@ -60,15 +53,31 @@ CREATE TABLE `file_block`  (
   `size` bigint(20) NULL DEFAULT NULL COMMENT '块大小,单位kb',
   `file_inode` bigint(255) UNSIGNED NULL DEFAULT NULL COMMENT '所属文件的唯一inode',
   `bucket` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '块存储桶',
+  `url` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '文件块链接',
   PRIMARY KEY (`block_inode`) USING BTREE,
   INDEX `file_block_ibfk_1`(`file_inode`) USING BTREE,
   CONSTRAINT `file_block_ibfk_1` FOREIGN KEY (`file_inode`) REFERENCES `file` (`inode`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB AUTO_INCREMENT = 21 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 22066 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of file_block
+-- Table structure for share_file
 -- ----------------------------
-
+DROP TABLE IF EXISTS `share_file`;
+CREATE TABLE `share_file`  (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `sharer_user_id` bigint(20) UNSIGNED NOT NULL,
+  `target_user_id` bigint(20) UNSIGNED NOT NULL,
+  `file_key` varbinary(255) NULL DEFAULT NULL,
+  `share_time` datetime(0) NULL DEFAULT NULL,
+  `file_id` bigint(255) UNSIGNED NOT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `sharer_id`(`sharer_user_id`) USING BTREE,
+  INDEX `target_id`(`target_user_id`) USING BTREE,
+  INDEX `file_id`(`file_id`) USING BTREE,
+  CONSTRAINT `flbk_1` FOREIGN KEY (`sharer_user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `flbk_2` FOREIGN KEY (`target_user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `flbk_3` FOREIGN KEY (`file_id`) REFERENCES `file` (`inode`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for user
@@ -87,11 +96,17 @@ CREATE TABLE `user`  (
   `register_time` datetime(6) NULL DEFAULT NULL COMMENT '用户注册时间',
   `used_capacity` bigint(20) NULL DEFAULT NULL COMMENT '用户存储容量',
   `total_capacity` bigint(20) NULL DEFAULT NULL COMMENT '系统为用户分配的总容量',
+  `public_key` varbinary(255) NULL DEFAULT NULL COMMENT '公钥',
+  `private_key` varbinary(255) NULL DEFAULT NULL COMMENT '被加密私钥',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of user
--- ----------------------------
+) ENGINE = InnoDB AUTO_INCREMENT = 20 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+-- ----------------------------
+-- Records of file
+-- ----------------------------
+INSERT INTO `file` VALUES (0, 'root', '2022-05-29 22:19:34.951910', NULL, NULL, NULL, NULL, NULL, 'UPLOADED', 'DIR', NULL, NULL, NULL);
+
+SET SQL_SAFE_UPDATES = 0;
+Update `file` SET inode=0 WHERE filename='root';
