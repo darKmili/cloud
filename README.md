@@ -57,7 +57,7 @@ redis 只需要单机版即可。具体安装步骤见https://redis.io/docs/gett
 
 ### 2.2 ceph分布式存储
 
-ceph的相关部署和安装具体见 doc/ceph集群搭建.pdf
+ceph的相关部署和安装具体见 [ceph集群搭建](https://github.com/darKmili/cloud/blob/main/doc/ceph%E9%9B%86%E7%BE%A4%E6%90%AD%E5%BB%BA.pdf)
 
 ### 2.3 相关配置参数说明
 
@@ -132,7 +132,7 @@ ceph:
 2.  验证安装成功 `nginx -v`
 3. 修改配置文件  `vim /etc/nginx/nginx.conf` 
 
-![image-20230324174547873](./doc/ceph/image-20230324174547873.png)
+![关键配置](https://github.com/darKmili/cloud/blob/main/doc/image-20230324174547873.png)
 
 4. 将前端 /dist 目录上传到服务器/home/leon/下，上传前先 npm run build前端
 
