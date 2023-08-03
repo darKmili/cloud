@@ -22,9 +22,11 @@ public enum FileState {
      * 销毁或者回收站状态
      */
     DESTROY("DESTROY");
-    private FileState(String state){
+
+    private FileState(String state) {
         this.state = state;
     }
+
     private String state;
 
     public String getState() {

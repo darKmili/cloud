@@ -20,16 +20,12 @@ public enum StatusEnum {
      */
     NO_PERMISSIONS(4002, "缺少权限!"),
 
-    INVALID_REQUEST(40003,"无效请求"),
-    NO_USER(40004,"无此用户"),
-    NO_RESOURCES(4005,"无此资源"),
-    HAVE_USER(4006,"用户已经注册，无需注册"),
+    INVALID_REQUEST(40003, "无效请求"), NO_USER(40004, "无此用户"), NO_RESOURCES(4005, "无此资源"), HAVE_USER(4006, "用户已经注册，无需注册"),
 
     /**
      * 服务端的故障
      */
     SERVER_ERROR(5000, "服务端故障!");
-
 
     /**
      * 错误码

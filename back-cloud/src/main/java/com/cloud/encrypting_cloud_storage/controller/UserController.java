@@ -1,17 +1,19 @@
 package com.cloud.encrypting_cloud_storage.controller;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+
+import org.springframework.web.bind.annotation.*;
+
 import com.cloud.encrypting_cloud_storage.enums.StatusEnum;
 import com.cloud.encrypting_cloud_storage.models.ApiResponse;
 import com.cloud.encrypting_cloud_storage.models.dto.AuthenticationRequest;
 import com.cloud.encrypting_cloud_storage.models.po.UserPo;
 import com.cloud.encrypting_cloud_storage.util.MyJWTUtil;
 import com.cloud.encrypting_cloud_storage.util.MyStringUtil;
+
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
 
 /**
  * @author leon
@@ -24,7 +26,6 @@ import javax.validation.Valid;
 @Api(tags = "用户控制器", value = "用户管理")
 public class UserController extends BaseController {
 
-
     /**
      * 检查用户是否存在，并返回用户的随机码
      *
@@ -34,7 +35,7 @@ public class UserController extends BaseController {
     @PostMapping("/check")
     @ApiOperation(value = "检查用户是否存在")
     @ApiImplicitParams({@ApiImplicitParam(name = "email", value = "用户邮箱", dataType = "String")})
-    @ApiResponses({@io.swagger.annotations.ApiResponse(code = 2000,message = "响应成功",response = ApiResponse.class)})
+    @ApiResponses({@io.swagger.annotations.ApiResponse(code = 2000, message = "响应成功", response = ApiResponse.class)})
     public ApiResponse checkUser(@RequestBody AuthenticationRequest authenticationRequest) {
         String randomValue = null;
         String email = authenticationRequest.getEmail();
@@ -48,7 +49,6 @@ public class UserController extends BaseController {
         log.info("------------" + randomValue);
         return ApiResponse.ofSuccess(randomValue);
     }
-
 
     @PostMapping("/login")
     @ApiOperation(value = "用户登录")
@@ -68,7 +68,7 @@ public class UserController extends BaseController {
      */
     @PostMapping("/register")
     @ApiOperation(value = "用户注册")
-    public ApiResponse register( @RequestBody UserPo userPo) {
+    public ApiResponse register(@RequestBody UserPo userPo) {
         // 查看用户是否存在
         UserPo userPoByEmail = userService.findUserByEmail(userPo.getEmail());
         if (userPoByEmail != null) {
@@ -78,7 +78,6 @@ public class UserController extends BaseController {
         UserPo initUser = userService.initUser(userPo);
         return ApiResponse.ofSuccess(initUser);
     }
-
 
     @GetMapping("/{userPath}")
     @ApiOperation(value = "获取用户详细信息")

@@ -1,39 +1,41 @@
 package com.cloud.encrypting_cloud_storage.models.po;
 
-import com.cloud.encrypting_cloud_storage.enums.FileState;
-import com.cloud.encrypting_cloud_storage.enums.FileType;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.*;
+import java.io.Serializable;
+import java.util.Objects;
+import java.util.Set;
+
+import javax.persistence.*;
+
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.NotFound;
 import org.hibernate.annotations.NotFoundAction;
 
-import javax.persistence.*;
-import java.io.Serializable;
-import java.sql.Timestamp;
-import java.util.Objects;
-import java.util.Set;
+import com.cloud.encrypting_cloud_storage.enums.FileState;
+import com.cloud.encrypting_cloud_storage.enums.FileType;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.*;
 
 /**
  * Created with IntelliJ IDEA.
  *
- * @author： leon
- * @description：
- * @date： 2022/5/19
+ * @author： leon @description： @date： 2022/5/19
+ * 
  * @version: 1.0
  */
 @Entity
 @Table(name = "file", schema = "cloud")
 @ApiModel(value = "文件实体", description = "即可表示文件，又可以表示目录")
-@NamedEntityGraph(name = "filePo.find", attributeNodes = {@NamedAttributeNode(value = "childrenFiles"), @NamedAttributeNode(value = "fileBlocks")})
+@NamedEntityGraph(name = "filePo.find",
+    attributeNodes = {@NamedAttributeNode(value = "childrenFiles"), @NamedAttributeNode(value = "fileBlocks")})
 @Getter
 @Setter
-//@ToString
+// @ToString
 @RequiredArgsConstructor
 @AllArgsConstructor
-@JsonIgnoreProperties(value = {"user","parentDir"})
+@JsonIgnoreProperties(value = {"user", "parentDir"})
 public class FilePo implements Serializable {
     @Id
     @Column(name = "inode")
@@ -89,27 +91,30 @@ public class FilePo implements Serializable {
     @NotFound(action = NotFoundAction.IGNORE)
     @ApiModelProperty("父目录")
     private FilePo parentDir;
-    @OneToMany(mappedBy = "parentDir",fetch = FetchType.EAGER,cascade = {CascadeType.REMOVE})
+    @OneToMany(mappedBy = "parentDir", fetch = FetchType.EAGER, cascade = {CascadeType.REMOVE})
     @ApiModelProperty(value = "子文件")
     @ToString.Exclude
     private Set<FilePo> childrenFiles;
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "user_id",referencedColumnName = "id")
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
     @ApiModelProperty(value = "文件所属用户")
     private UserPo user;
-    @OneToMany(mappedBy = "parentFilePo",fetch = FetchType.LAZY,cascade = {CascadeType.REMOVE})
+    @OneToMany(mappedBy = "parentFilePo", fetch = FetchType.LAZY, cascade = {CascadeType.REMOVE})
     @ApiModelProperty(value = "文件所有块")
     @ToString.Exclude
     private Set<FileBlockPo> fileBlocks;
+
     public FilePo(Long inode) {
         this.inode = inode;
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        FilePo filePo = (FilePo) o;
+        if (this == o)
+            return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o))
+            return false;
+        FilePo filePo = (FilePo)o;
         return inode != null && Objects.equals(inode, filePo.inode);
     }
 

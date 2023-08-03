@@ -1,37 +1,36 @@
 package com.cloud.encrypting_cloud_storage.controller;
 
-import cn.hutool.core.util.ArrayUtil;
-import com.alibaba.fastjson.JSONObject;
-import com.cloud.encrypting_cloud_storage.models.po.FileBlockPo;
-import com.cloud.encrypting_cloud_storage.models.po.FilePo;
-import com.cloud.encrypting_cloud_storage.models.vo.BlockVo;
-import com.cloud.encrypting_cloud_storage.models.vo.FileVo;
-import com.cloud.encrypting_cloud_storage.service.BlockService;
-import com.cloud.encrypting_cloud_storage.service.FileService;
-import com.cloud.encrypting_cloud_storage.util.MyStringUtil;
-import io.swagger.annotations.Api;
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
+import javax.websocket.*;
+import javax.websocket.server.PathParam;
+import javax.websocket.server.ServerEndpoint;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
-import javax.websocket.*;
-import javax.websocket.server.PathParam;
-import javax.websocket.server.ServerEndpoint;
-import java.io.IOException;
-import java.net.URL;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import com.alibaba.fastjson.JSONObject;
+import com.cloud.encrypting_cloud_storage.models.po.FileBlockPo;
+import com.cloud.encrypting_cloud_storage.models.po.FilePo;
+import com.cloud.encrypting_cloud_storage.models.vo.FileVo;
+import com.cloud.encrypting_cloud_storage.service.BlockService;
+import com.cloud.encrypting_cloud_storage.service.FileService;
+
+import io.swagger.annotations.Api;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 文件下载
  *
- * @author： leon
- * @description：
- * @date： 2022/6/1
+ * @author： leon @description： @date： 2022/6/1
+ * 
  * @version: 1.0
  */
 @Slf4j
@@ -47,14 +46,13 @@ public class BlockDownloadWebSocket {
     /**
      * concurrent包的线程安全Map，用来存放每个客户端对应的MyWebSocket对象。主键是每个用户的ID
      */
-    private static final ConcurrentHashMap<Long, BlockDownloadWebSocket> BlockDownloadWebsockets = new ConcurrentHashMap<>();
-
+    private static final ConcurrentHashMap<Long, BlockDownloadWebSocket> BlockDownloadWebsockets =
+        new ConcurrentHashMap<>();
 
     /**
      * 与某个客户端的连接会话，需要通过它来给客户端发送数据
      */
     private Session session;
-
 
     /**
      * 当前文件的情况
@@ -64,8 +62,7 @@ public class BlockDownloadWebSocket {
     /**
      * 当前块的情况
      */
-    private Map<Integer,FileBlockPo> allBlockMap;
-
+    private Map<Integer, FileBlockPo> allBlockMap;
 
     /**
      * 业务对象要变为静态，不然无法注入。。当有连接接入时，会创建一个新的服务器类对象，而spring只会给IOC容器启动时创建的对象注入userService，连接接入时创建的对象并没有注入
@@ -89,7 +86,6 @@ public class BlockDownloadWebSocket {
     public void setBlockService(BlockService blockService) {
         BlockDownloadWebSocket.blockService = blockService;
     }
-
 
     /**
      * onopen 在连接创建时触发
@@ -124,7 +120,7 @@ public class BlockDownloadWebSocket {
             e.printStackTrace();
         }
         if (filePo == null) {
-           filePo =fileService.findFileByInodeAndUserId(fileVo.getInode(), Long.valueOf(userId));
+            filePo = fileService.findFileByInodeAndUserId(fileVo.getInode(), Long.valueOf(userId));
             filePo.setInode(fileVo.getInode());
         }
 
@@ -132,22 +128,21 @@ public class BlockDownloadWebSocket {
             allBlockMap = new HashMap<>();
             Set<FileBlockPo> fileAllBlock = blockService.findFileAllBlock(filePo);
             for (FileBlockPo fileBlockPo : fileAllBlock) {
-                allBlockMap.put(fileBlockPo.getIdx(),fileBlockPo);
+                allBlockMap.put(fileBlockPo.getIdx(), fileBlockPo);
             }
         }
         try {
             assert fileVo != null;
-            if (allBlockMap.containsKey( fileVo.getIndex())){
+            if (allBlockMap.containsKey(fileVo.getIndex())) {
                 byte[] downloadBlock = blockService.downloadBlock(allBlockMap.get(fileVo.getIndex()));
                 this.sendMessage(downloadBlock);
-            }else {
-                this.sendMessage(new byte[]{1,2,3,4});
+            } else {
+                this.sendMessage(new byte[] {1, 2, 3, 4});
             }
 
         } catch (Exception e) {
             e.printStackTrace();
         }
-
 
     }
 
@@ -191,7 +186,6 @@ public class BlockDownloadWebSocket {
         this.session.getBasicRemote().sendText(message);
     }
 
-
     /**
      * 服务器主动提推送消息
      *
@@ -201,7 +195,6 @@ public class BlockDownloadWebSocket {
     public void sendMessage(byte[] message) throws IOException {
         this.session.getBasicRemote().sendBinary(ByteBuffer.wrap(message));
     }
-
 
     /**
      * 原子性的++操作

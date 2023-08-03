@@ -1,38 +1,36 @@
 package com.cloud.encrypting_cloud_storage.controller;
 
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.codec.Base64;
-import cn.hutool.core.util.StrUtil;
-import com.alibaba.fastjson.JSONObject;
-import com.cloud.encrypting_cloud_storage.enums.FileState;
-import com.cloud.encrypting_cloud_storage.enums.FileType;
-import com.cloud.encrypting_cloud_storage.exceptions.ApiException;
-import com.cloud.encrypting_cloud_storage.models.dto.FileDto;
-import com.cloud.encrypting_cloud_storage.models.po.FileBlockPo;
-import com.cloud.encrypting_cloud_storage.models.po.FilePo;
-import com.cloud.encrypting_cloud_storage.models.po.UserPo;
-import com.cloud.encrypting_cloud_storage.models.vo.BlockVo;
-import com.cloud.encrypting_cloud_storage.models.vo.TransVo;
-import com.cloud.encrypting_cloud_storage.service.BlockService;
-import com.cloud.encrypting_cloud_storage.service.FileService;
-import com.cloud.encrypting_cloud_storage.service.UserService;
-import com.cloud.encrypting_cloud_storage.util.MyStringUtil;
-import io.swagger.annotations.Api;
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.concurrent.ConcurrentHashMap;
+
+import javax.websocket.*;
+import javax.websocket.server.PathParam;
+import javax.websocket.server.ServerEndpoint;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
-import javax.websocket.*;
-import javax.websocket.server.PathParam;
-import javax.websocket.server.ServerEndpoint;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.concurrent.ConcurrentHashMap;
+import com.alibaba.fastjson.JSONObject;
+import com.cloud.encrypting_cloud_storage.enums.FileState;
+import com.cloud.encrypting_cloud_storage.enums.FileType;
+import com.cloud.encrypting_cloud_storage.models.dto.FileDto;
+import com.cloud.encrypting_cloud_storage.models.po.FileBlockPo;
+import com.cloud.encrypting_cloud_storage.models.po.FilePo;
+import com.cloud.encrypting_cloud_storage.models.po.UserPo;
+import com.cloud.encrypting_cloud_storage.models.vo.TransVo;
+import com.cloud.encrypting_cloud_storage.service.BlockService;
+import com.cloud.encrypting_cloud_storage.service.FileService;
+import com.cloud.encrypting_cloud_storage.service.UserService;
+import com.cloud.encrypting_cloud_storage.util.MyStringUtil;
+
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.StrUtil;
+import io.swagger.annotations.Api;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author leon
@@ -45,7 +43,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class BlockWebsocket {
 
-
     /**
      * 静态变量，用来记录当前在线连接数。应该把它设计成线程安全的。
      */
@@ -56,12 +53,10 @@ public class BlockWebsocket {
      */
     private static final ConcurrentHashMap<Long, BlockWebsocket> blockWebsockets = new ConcurrentHashMap<>();
 
-
     /**
      * 与某个客户端的连接会话，需要通过它来给客户端发送数据
      */
     private Session session;
-
 
     /**
      * 当前文件的情况
@@ -72,7 +67,6 @@ public class BlockWebsocket {
      * 当前块的情况
      */
     private FileBlockPo blockPo;
-
 
     /**
      * 结束标识判断
@@ -109,7 +103,6 @@ public class BlockWebsocket {
     public void setBlockService(BlockService blockService) {
         BlockWebsocket.blockService = blockService;
     }
-
 
     /**
      * onopen 在连接创建时触发
@@ -152,52 +145,53 @@ public class BlockWebsocket {
             this.filePo = fileService.save(filePo);
         }
 
-//        else if (BLOCK_UPLOAD.equals(opt)) {
-//            final JSONObject data = (JSONObject) transVo.getData();
-//            // 检查文件状态
-//            FileBlockPo blockPo = new FileBlockPo();
-//            blockPo.setData(data.getString("encryptedData"));
-//            blockPo.setParentFilePo(this.filePo);
-//            blockPo.setFingerprint((String) data.getString("fingerprint"));
-//            blockPo.setIdx((Integer) data.getInteger("idx"));
-//            blockPo.setSize(data.getLong("size"));
-//            // 将块元数据保存到数据库
-//            // 检查 当前块的 数据是否已经存在与redis中
-//            String size = redisTemplate.opsForValue().get(blockPo.getFingerprint());
-//
-//            // 如果当前块存在于缓存中，表示当前数据已经存在，不存需要进行接下来的上传操作,只需将块的缓数据加1
-//            if (size != null) {
-//                redisTemplate.opsForValue().increment(blockPo.getFingerprint());
-//                blockPo.setUrl(blockService.getFingerprintUrl(blockPo.getFingerprint()));
-//                blockPo = blockService.save(blockPo);
-//            } else {
-//                // 不存在与缓存中
-//                redisTemplate.opsForValue().set(blockPo.getFingerprint(), String.valueOf(1));
-//                final String url;
-//                try {
-//                    url = blockService.uploadBlock(blockPo);
-//                    if (!StrUtil.isBlank(url)) {
-//                        blockPo.setUrl(url);
-//                        blockPo = blockService.save(blockPo);
-//                    }
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//
-//
-//            }
-//            blockPo.setData(null);
-//            try {
-//                sendMessage(JSONObject.toJSONString(blockPo));
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
+        // else if (BLOCK_UPLOAD.equals(opt)) {
+        // final JSONObject data = (JSONObject) transVo.getData();
+        // // 检查文件状态
+        // FileBlockPo blockPo = new FileBlockPo();
+        // blockPo.setData(data.getString("encryptedData"));
+        // blockPo.setParentFilePo(this.filePo);
+        // blockPo.setFingerprint((String) data.getString("fingerprint"));
+        // blockPo.setIdx((Integer) data.getInteger("idx"));
+        // blockPo.setSize(data.getLong("size"));
+        // // 将块元数据保存到数据库
+        // // 检查 当前块的 数据是否已经存在与redis中
+        // String size = redisTemplate.opsForValue().get(blockPo.getFingerprint());
+        //
+        // // 如果当前块存在于缓存中，表示当前数据已经存在，不存需要进行接下来的上传操作,只需将块的缓数据加1
+        // if (size != null) {
+        // redisTemplate.opsForValue().increment(blockPo.getFingerprint());
+        // blockPo.setUrl(blockService.getFingerprintUrl(blockPo.getFingerprint()));
+        // blockPo = blockService.save(blockPo);
+        // } else {
+        // // 不存在与缓存中
+        // redisTemplate.opsForValue().set(blockPo.getFingerprint(), String.valueOf(1));
+        // final String url;
+        // try {
+        // url = blockService.uploadBlock(blockPo);
+        // if (!StrUtil.isBlank(url)) {
+        // blockPo.setUrl(url);
+        // blockPo = blockService.save(blockPo);
+        // }
+        // } catch (Exception e) {
+        // e.printStackTrace();
+        // }
+        //
+        //
+        // }
+        // blockPo.setData(null);
+        // try {
+        // sendMessage(JSONObject.toJSONString(blockPo));
+        // } catch (IOException e) {
+        // e.printStackTrace();
+        // }
 
-//        }
+        // }
     }
 
     /**
      * 接受到字节流流时创建
+     * 
      * @param message
      */
     /**
@@ -210,20 +204,15 @@ public class BlockWebsocket {
 
         log.info(String.valueOf(System.currentTimeMillis()));
 
-
-
-//        if (message.length>=1){
-//            return;
-//        }
+        // if (message.length>=1){
+        // return;
+        // }
         // 解析字节数据 20指纹+4索引+4块大小+数据
-        String fingerprint =  new String(message,0,20, StandardCharsets.US_ASCII);
+        String fingerprint = new String(message, 0, 20, StandardCharsets.US_ASCII);
 
-
-
-
-        int idx = MyStringUtil.bytesToInt(Arrays.copyOfRange(message,20,24));
-        int size = MyStringUtil.bytesToInt(Arrays.copyOfRange(message,24,28));
-        byte[] data = Arrays.copyOfRange(message,28,message.length);
+        int idx = MyStringUtil.bytesToInt(Arrays.copyOfRange(message, 20, 24));
+        int size = MyStringUtil.bytesToInt(Arrays.copyOfRange(message, 24, 28));
+        byte[] data = Arrays.copyOfRange(message, 28, message.length);
         // 将数据保存到后端(数据库+Ceph集群)
 
         FileBlockPo blockPo = new FileBlockPo();
@@ -263,10 +252,6 @@ public class BlockWebsocket {
             }
         }
 
-
-
-
-
     }
 
     /**
@@ -299,7 +284,6 @@ public class BlockWebsocket {
     public void sendMessage(String message) throws IOException {
         this.session.getBasicRemote().sendText(message);
     }
-
 
     /**
      * 原子性的++操作

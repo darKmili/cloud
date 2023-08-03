@@ -1,16 +1,18 @@
 package com.cloud.encrypting_cloud_storage.service.impl;
 
-import com.cloud.encrypting_cloud_storage.models.po.FilePo;
-import com.cloud.encrypting_cloud_storage.models.po.UserPo;
-import com.cloud.encrypting_cloud_storage.repository.FileRepository;
-import com.cloud.encrypting_cloud_storage.service.FileService;
-import lombok.extern.slf4j.Slf4j;
+import java.util.List;
+import java.util.Set;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Set;
+import com.cloud.encrypting_cloud_storage.models.po.FilePo;
+import com.cloud.encrypting_cloud_storage.models.po.UserPo;
+import com.cloud.encrypting_cloud_storage.repository.FileRepository;
+import com.cloud.encrypting_cloud_storage.service.FileService;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author leon
@@ -22,6 +24,7 @@ import java.util.Set;
 @Transactional(rollbackFor = Exception.class)
 public class FileServiceImpl implements FileService {
     FileRepository fileRepository;
+
     @Autowired
     public void setFileRepository(FileRepository fileRepository) {
         this.fileRepository = fileRepository;
@@ -30,9 +33,8 @@ public class FileServiceImpl implements FileService {
     @Override
     public boolean uploadFile(FilePo filePo) throws Exception {
         FilePo save = fileRepository.save(filePo);
-        return save!=null;
+        return save != null;
     }
-
 
     @Override
     public boolean exitsMyFile(Long inode) {
@@ -46,17 +48,17 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public List<FilePo> findAllFileByUserAndDir(UserPo userPo, FilePo dir) {
-        return fileRepository.findAllByUserAndParentDir(userPo,dir);
+        return fileRepository.findAllByUserAndParentDir(userPo, dir);
     }
 
     @Override
     public void deleteFile(Long inode, Long userId) {
-        fileRepository.deleteByInodeAndUser(inode,new UserPo(userId));
+        fileRepository.deleteByInodeAndUser(inode, new UserPo(userId));
     }
 
     @Override
     public FilePo findFileByInodeAndUserId(Long inode, Long userId) {
-        return fileRepository.findByInodeAndUser(inode,new UserPo(userId));
+        return fileRepository.findByInodeAndUser(inode, new UserPo(userId));
     }
 
     @Override
@@ -65,7 +67,7 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public void deleteByInodeAndUser(Long inode, Long userId){
-        fileRepository.deleteByInodeAndUser(inode,new UserPo(userId));
+    public void deleteByInodeAndUser(Long inode, Long userId) {
+        fileRepository.deleteByInodeAndUser(inode, new UserPo(userId));
     }
 }

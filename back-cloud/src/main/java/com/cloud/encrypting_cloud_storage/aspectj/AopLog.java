@@ -1,15 +1,14 @@
 package com.cloud.encrypting_cloud_storage.aspectj;
 
-import cn.hutool.core.util.ArrayUtil;
-import cn.hutool.http.useragent.UserAgent;
-import cn.hutool.http.useragent.UserAgentUtil;
-import com.amazonaws.util.json.Jackson;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.Signature;
 import org.aspectj.lang.annotation.Around;
@@ -20,13 +19,17 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import javax.servlet.http.HttpServletRequest;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import com.amazonaws.util.json.Jackson;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import cn.hutool.core.util.ArrayUtil;
+import cn.hutool.http.useragent.UserAgent;
+import cn.hutool.http.useragent.UserAgentUtil;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author leon
@@ -80,34 +83,29 @@ public class AopLog {
 
     /**
      * 控制器方法日志
+     * 
      * @param point 切入点
      * @return 原方法返回值
      * @throws Throwable 异常信息
      */
     @Around("log()")
     public Object aroundLog(ProceedingJoinPoint point) throws Throwable {
-        ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        ServletRequestAttributes requestAttributes =
+            (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
         HttpServletRequest request = Objects.requireNonNull(requestAttributes).getRequest();
 
         long starter = System.currentTimeMillis();
         Object result = point.proceed();
         String userAgentStr = request.getHeader("User-Agent");
         UserAgent userAgent = UserAgentUtil.parse(userAgentStr);
-        final Log log1 = Log.builder()
-                .userAgent(userAgentStr)
-                .browser(userAgent.getBrowser().toString())
-                .os(userAgent.getOs().toString())
-
-                .threadId(Long.toString(Thread.currentThread().getId()))
-                .threadName(Thread.currentThread().getName())
-                .ip(getIp(request))
-                .url(request.getRequestURI())
-                .classMethod(String.format("%s.%s", point.getSignature().getDeclaringTypeName(), point.getSignature().getName()))
-                .requestParams(getNameAndValue(point))
-                .httpMethod(request.getMethod())
-                .result(result)
-                .timeCost(System.currentTimeMillis() - starter)
-                .build();
+        final Log log1 = Log.builder().userAgent(userAgentStr).browser(userAgent.getBrowser().toString())
+            .os(userAgent.getOs().toString())
+            .threadId(Long.toString(Thread.currentThread().getId())).threadName(Thread.currentThread().getName())
+            .ip(getIp(request)).url(request.getRequestURI())
+            .classMethod(
+                String.format("%s.%s", point.getSignature().getDeclaringTypeName(), point.getSignature().getName()))
+            .requestParams(getNameAndValue(point)).httpMethod(request.getMethod()).result(result)
+            .timeCost(System.currentTimeMillis() - starter).build();
         log.info("Request log info:{}", Jackson.toJsonString(log1));
         return result;
     }
@@ -120,7 +118,7 @@ public class AopLog {
      */
     private Map<String, Object> getNameAndValue(ProceedingJoinPoint point) {
         final Signature signature = point.getSignature();
-        MethodSignature methodSignature = (MethodSignature) signature;
+        MethodSignature methodSignature = (MethodSignature)signature;
         // 获得参数名数组
         final String[] parameterNames = methodSignature.getParameterNames();
         // 获得参数值数组
@@ -150,10 +148,10 @@ public class AopLog {
      */
     private String getIp(HttpServletRequest request) {
         String ip = null;
-        //X-Forwarded-For：Squid 服务代理
-        //Proxy-Client-IP：apache 服务代理
-        //WL-Proxy-Client-IP：weblogic 服务代理
-        //X-Real-IP：nginx服务代理
+        // X-Forwarded-For：Squid 服务代理
+        // Proxy-Client-IP：apache 服务代理
+        // WL-Proxy-Client-IP：weblogic 服务代理
+        // X-Real-IP：nginx服务代理
         ip = request.getHeader("x-forwarded-for");
         if (ip == null || ip.length() == 0 || UNKNOWN.equalsIgnoreCase(ip)) {
             ip = request.getHeader("Proxy-Client-IP");
@@ -180,6 +178,5 @@ public class AopLog {
         }
         return ip;
     }
-
 
 }

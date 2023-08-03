@@ -1,8 +1,7 @@
 package com.cloud.encrypting_cloud_storage.config;
 
-import com.cloud.encrypting_cloud_storage.interceptor.JwtInterceptor;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.hibernate5.Hibernate5Module;
+import java.text.SimpleDateFormat;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -11,7 +10,9 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import java.text.SimpleDateFormat;
+import com.cloud.encrypting_cloud_storage.interceptor.JwtInterceptor;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.hibernate5.Hibernate5Module;
 
 /**
  * @author leon
@@ -21,13 +22,10 @@ import java.text.SimpleDateFormat;
 @Configuration
 public class MyMvcConfig implements WebMvcConfigurer {
 
-
     @Bean
     JwtInterceptor jwtInterceptor() {
         return new JwtInterceptor();
     }
-
-
 
     /**
      * 授权拦截器
@@ -37,8 +35,9 @@ public class MyMvcConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(jwtInterceptor()).addPathPatterns("/**")
-                .excludePathPatterns("/users/login", "/users/check", "/users/register", "/error", "/webjars/**","/static/**","/swagger-resources/**", "/webjars/**", "/v2/**", "/swagger-ui.html/**","/csrf/**"
-                ).order(0);
+            .excludePathPatterns("/users/login", "/users/check", "/users/register", "/error", "/webjars/**",
+                "/static/**", "/swagger-resources/**", "/webjars/**", "/v2/**", "/swagger-ui.html/**", "/csrf/**")
+            .order(0);
 
     }
 
@@ -49,12 +48,9 @@ public class MyMvcConfig implements WebMvcConfigurer {
      */
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/**").addResourceLocations(
-                "classpath:/static/");
-        registry.addResourceHandler("swagger-ui.html").addResourceLocations(
-                "classpath:/META-INF/resources/");
-        registry.addResourceHandler("/webjars/**").addResourceLocations(
-                "classpath:/META-INF/resources/webjars/");
+        registry.addResourceHandler("/**").addResourceLocations("classpath:/static/");
+        registry.addResourceHandler("swagger-ui.html").addResourceLocations("classpath:/META-INF/resources/");
+        registry.addResourceHandler("/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/");
     }
 
     @Bean
@@ -69,14 +65,11 @@ public class MyMvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
-                .allowedHeaders("*")
-                .allowedMethods("*")
-                // 探测有效期
-                .maxAge(1800)
-                // 设置访问源地址
-                .allowedOrigins("*");
+        registry.addMapping("/**").allowedHeaders("*").allowedMethods("*")
+            // 探测有效期
+            .maxAge(1800)
+            // 设置访问源地址
+            .allowedOrigins("*");
     }
-
 
 }

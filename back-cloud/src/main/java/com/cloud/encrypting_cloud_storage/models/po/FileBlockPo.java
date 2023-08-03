@@ -1,29 +1,34 @@
 package com.cloud.encrypting_cloud_storage.models.po;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.*;
-import org.hibernate.Hibernate;
+import java.util.Objects;
 
 import javax.persistence.*;
-import java.util.Objects;
+
+import org.hibernate.Hibernate;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 /**
  * Created with IntelliJ IDEA.
  *
- * @author： leon
- * @description：
- * @date： 2022/5/19
+ * @author： leon @description： @date： 2022/5/19
+ * 
  * @version: 1.0
  */
 @Entity
 @Table(name = "file_block", schema = "cloud")
-@ApiModel(value = "文件块实体",description = "文件块元数据存储")
+@ApiModel(value = "文件块实体", description = "文件块元数据存储")
 @Getter
 @Setter
-//@ToString
+// @ToString
 @RequiredArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(value = {"parentFilePo"})
@@ -64,9 +69,11 @@ public class FileBlockPo {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        FileBlockPo that = (FileBlockPo) o;
+        if (this == o)
+            return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o))
+            return false;
+        FileBlockPo that = (FileBlockPo)o;
         return blockInode != null && Objects.equals(blockInode, that.blockInode);
     }
 

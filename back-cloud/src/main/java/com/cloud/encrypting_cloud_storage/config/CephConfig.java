@@ -1,26 +1,22 @@
 package com.cloud.encrypting_cloud_storage.config;
 
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.Protocol;
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.client.builder.AwsClientBuilder;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.Bucket;
-import com.amazonaws.services.s3.model.BucketCrossOriginConfiguration;
-import com.amazonaws.services.s3.model.CORSRule;
-import jdk.nashorn.internal.runtime.logging.Logger;
-import lombok.extern.slf4j.Slf4j;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import com.amazonaws.ClientConfiguration;
+import com.amazonaws.Protocol;
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.BucketCrossOriginConfiguration;
+import com.amazonaws.services.s3.model.CORSRule;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author leon
@@ -38,16 +34,19 @@ public class CephConfig {
     private String host;
     @Value("${ceph.bucket}")
     private String bucket;
+
     @Bean
-    public AWSCredentials  awsCredentials(){
-        return new BasicAWSCredentials(accessKey,secretKey);
+    public AWSCredentials awsCredentials() {
+        return new BasicAWSCredentials(accessKey, secretKey);
     }
+
     @Bean
-    public ClientConfiguration cephConfiguration(){
+    public ClientConfiguration cephConfiguration() {
         return new ClientConfiguration().withProtocol(Protocol.HTTP);
     }
+
     @Bean
-    public AmazonS3Client amazonS3Client(){
+    public AmazonS3Client amazonS3Client() {
         AmazonS3Client amazonS3 = new AmazonS3Client(awsCredentials(), cephConfiguration());
         amazonS3.setEndpoint(host);
         if (amazonS3.doesBucketExist(bucket)) {
@@ -60,11 +59,8 @@ public class CephConfig {
             rule1AM.add(CORSRule.AllowedMethods.POST);
             rule1AM.add(CORSRule.AllowedMethods.DELETE);
             rule1AM.add(CORSRule.AllowedMethods.GET);
-            CORSRule rule1 = new CORSRule().withId("CORSRule1")
-                    .withAllowedMethods(rule1AM)
-                    .withAllowedOrigins(Arrays.asList("*"))
-                    .withAllowedHeaders(Arrays.asList("*"))
-                    .withMaxAgeSeconds(3000);
+            CORSRule rule1 = new CORSRule().withId("CORSRule1").withAllowedMethods(rule1AM)
+                .withAllowedOrigins(Arrays.asList("*")).withAllowedHeaders(Arrays.asList("*")).withMaxAgeSeconds(3000);
             List<CORSRule> rules = new ArrayList<CORSRule>();
             rules.add(rule1);
             // Add the rules to a new CORS configuration.
@@ -75,7 +71,5 @@ public class CephConfig {
         }
         return amazonS3;
     }
-
-
 
 }

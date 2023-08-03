@@ -16,9 +16,8 @@ import java.util.Date;
 /**
  * Created with IntelliJ IDEA.
  *
- * @author： leon
- * @description：
- * @date： 2022/5/19
+ * @author： leon @description： @date： 2022/5/19
+ * 
  * @version: 1.0
  */
 @Component
@@ -30,11 +29,9 @@ public class MyJWTUtil {
 
     private static final ConcurrentHashSet<String> invalidTokenSet = new ConcurrentHashSet<>();
 
-
     public void setHeader(String header) {
         MyJWTUtil.header = header;
     }
-
 
     public void setSecret(String secret) {
         MyJWTUtil.secret = secret;
@@ -45,25 +42,20 @@ public class MyJWTUtil {
     }
 
     public static String createToken(UserPo userPo) {
-        return  JWT.create()
-                .withClaim("uid", userPo.getId())
-                .withClaim("email", userPo.getEmail())
-                .withClaim("randomValue", userPo.getClientRandomValue())
-                .withExpiresAt(new Date(System.currentTimeMillis() + expireTime))
-                .sign(Algorithm.HMAC256(secret));
+        return JWT.create().withClaim("uid", userPo.getId()).withClaim("email", userPo.getEmail())
+            .withClaim("randomValue", userPo.getClientRandomValue())
+            .withExpiresAt(new Date(System.currentTimeMillis() + expireTime)).sign(Algorithm.HMAC256(secret));
     }
 
     public static DecodedJWT verifyToken(String token) {
-        if(token==null||token.length()==0){
+        if (token == null || token.length() == 0) {
             throw new ApiException(StatusEnum.NOT_LOGIN);
         }
         if (invalidTokenSet.contains(token)) {
             throw new ApiException(StatusEnum.NOT_LOGIN);
         }
         try {
-            return JWT.require(Algorithm.HMAC256(secret))
-                    .build()
-                    .verify(token);
+            return JWT.require(Algorithm.HMAC256(secret)).build().verify(token);
 
         } catch (TokenExpiredException e) {
             throw new ApiException(-2, "token已经过期");
@@ -71,7 +63,6 @@ public class MyJWTUtil {
             throw new ApiException(StatusEnum.NOT_LOGIN);
         }
     }
-
 
     /**
      * 是否需要更新token
@@ -82,10 +73,7 @@ public class MyJWTUtil {
     public static Boolean isNeedUpdateToken(String token) {
         Date expiresAt = null;
         try {
-            expiresAt = JWT.require(Algorithm.HMAC256(secret))
-                    .build()
-                    .verify(token)
-                    .getExpiresAt();
+            expiresAt = JWT.require(Algorithm.HMAC256(secret)).build().verify(token).getExpiresAt();
         } catch (TokenExpiredException e) {
             // 已经过期，需要更新
             return true;

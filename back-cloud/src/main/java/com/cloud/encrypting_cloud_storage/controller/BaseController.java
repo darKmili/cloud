@@ -1,13 +1,14 @@
 package com.cloud.encrypting_cloud_storage.controller;
 
+import javax.annotation.Resource;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Controller;
+
 import com.cloud.encrypting_cloud_storage.service.AuthenticationService;
 import com.cloud.encrypting_cloud_storage.service.FileService;
 import com.cloud.encrypting_cloud_storage.service.ShareFileService;
 import com.cloud.encrypting_cloud_storage.service.UserService;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Controller;
-
-import javax.annotation.Resource;
 
 /**
  * @author leon

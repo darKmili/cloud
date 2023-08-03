@@ -1,6 +1,7 @@
 package com.cloud.encrypting_cloud_storage.exceptions;
 
 import com.cloud.encrypting_cloud_storage.enums.StatusEnum;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -11,15 +12,17 @@ import lombok.EqualsAndHashCode;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class BaseException extends RuntimeException{
+public class BaseException extends RuntimeException {
     private Integer code;
     private String message;
-    public BaseException(Integer code,String message){
+
+    public BaseException(Integer code, String message) {
         super(message);
         this.code = code;
         this.message = message;
     }
-    public BaseException(StatusEnum status){
+
+    public BaseException(StatusEnum status) {
         super(status.getMassage());
         this.code = status.getCode();
         this.message = status.getMassage();

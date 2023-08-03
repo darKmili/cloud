@@ -1,5 +1,10 @@
 package com.cloud.encrypting_cloud_storage.models.po;
 
+import java.util.Date;
+import java.util.Objects;
+
+import javax.persistence.*;
+
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -7,16 +12,11 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.*;
-import java.util.Date;
-import java.util.Objects;
-
 /**
  * Created with IntelliJ IDEA.
  *
- * @author： leon
- * @description：
- * @date： 2023/2/25
+ * @author： leon @description： @date： 2023/2/25
+ * 
  * @version: 1.0
  */
 @Entity
@@ -24,7 +24,7 @@ import java.util.Objects;
 @ApiModel(value = "分享文件实体", description = "记录分享文件信息")
 @Getter
 @Setter
-//@ToString
+// @ToString
 @RequiredArgsConstructor
 @AllArgsConstructor
 public class ShareFilePo {
@@ -34,19 +34,17 @@ public class ShareFilePo {
     private long id;
 
     @OneToOne
-    @JoinColumn(name = "file_id",referencedColumnName = "inode")
+    @JoinColumn(name = "file_id", referencedColumnName = "inode")
     @ApiModelProperty(value = "分享文件")
     private FilePo filePo;
 
-
     @OneToOne
-    @JoinColumn(name = "sharer_user_id",referencedColumnName = "id")
+    @JoinColumn(name = "sharer_user_id", referencedColumnName = "id")
     @ApiModelProperty(value = "分享者")
     private UserPo sharerUser;
 
-
     @OneToOne
-    @JoinColumn(name = "target_user_id",referencedColumnName = "id")
+    @JoinColumn(name = "target_user_id", referencedColumnName = "id")
     @ApiModelProperty(value = "被分享者")
     private UserPo targetUser;
 
@@ -78,9 +76,6 @@ public class ShareFilePo {
         this.targetUser = targetUser;
     }
 
-
-
-
     public long getId() {
         return id;
     }
@@ -88,7 +83,6 @@ public class ShareFilePo {
     public void setId(long id) {
         this.id = id;
     }
-
 
     public Date getShareTime() {
         return shareTime;

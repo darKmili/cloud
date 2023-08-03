@@ -1,20 +1,20 @@
 package com.cloud.encrypting_cloud_storage.service.impl;
 
-import com.cloud.encrypting_cloud_storage.enums.FileType;
-import com.cloud.encrypting_cloud_storage.models.po.FilePo;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.cloud.encrypting_cloud_storage.models.po.UserPo;
 import com.cloud.encrypting_cloud_storage.repository.FileRepository;
 import com.cloud.encrypting_cloud_storage.repository.UserRepository;
 import com.cloud.encrypting_cloud_storage.service.UserService;
 import com.cloud.encrypting_cloud_storage.util.MyStringUtil;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author leon
@@ -34,10 +34,8 @@ public class UserServiceImpl implements UserService {
         this.fileRepository = fileRepository;
     }
 
-
     /**
-     * 对于save方法的解释：如果执行此方法是对象中存在id属性，即为更新操作会先根据id查询，再更新
-     * 如果执行此方法中对象中不存在id属性，即为保存操作
+     * 对于save方法的解释：如果执行此方法是对象中存在id属性，即为更新操作会先根据id查询，再更新 如果执行此方法中对象中不存在id属性，即为保存操作
      *
      * @param userPo
      * @return
@@ -79,16 +77,16 @@ public class UserServiceImpl implements UserService {
         userPo.setRegisterTime(Timestamp.valueOf(LocalDateTime.now()));
         userPo.setCurLoadTime(userPo.getRegisterTime());
         // 10G
-        userPo.setTotalCapacity(10*1024*1024*1024L);
+        userPo.setTotalCapacity(10 * 1024 * 1024 * 1024L);
         userPo.setUsedCapacity(0L);
         UserPo save = userRepository.save(userPo);
 
-//        FilePo filePo = new FilePo();
-//        filePo.setType(FileType.DIR);
-//        filePo.setUser(save);
-//        filePo.setFilename(userPo.getName());
-//        filePo.setParentDir(new FilePo(0L));
-//        fileRepository.save(filePo);
+        // FilePo filePo = new FilePo();
+        // filePo.setType(FileType.DIR);
+        // filePo.setUser(save);
+        // filePo.setFilename(userPo.getName());
+        // filePo.setParentDir(new FilePo(0L));
+        // fileRepository.save(filePo);
 
         return save;
     }

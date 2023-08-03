@@ -1,5 +1,8 @@
 package com.cloud.encrypting_cloud_storage.config;
 
+import javax.servlet.MultipartConfigElement;
+import javax.servlet.Servlet;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -11,9 +14,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import org.springframework.web.servlet.DispatcherServlet;
 
-import javax.servlet.MultipartConfigElement;
-import javax.servlet.Servlet;
-
 /**
  * @author leon
  * @Description: 上传配置
@@ -21,34 +21,36 @@ import javax.servlet.Servlet;
  */
 @Configuration
 @ConditionalOnClass({Servlet.class, StandardServletMultipartResolver.class, MultipartConfigElement.class})
-@ConditionalOnProperty(prefix = "spring.servlet.multipart",name = "enabled",matchIfMissing = true)
+@ConditionalOnProperty(prefix = "spring.servlet.multipart", name = "enabled", matchIfMissing = true)
 @EnableConfigurationProperties(MultipartProperties.class)
 public class UploadConfig {
 
-
     private final MultipartProperties multipartProperties;
+
     @Autowired
-    public UploadConfig(MultipartProperties multipartProperties){
+    public UploadConfig(MultipartProperties multipartProperties) {
         this.multipartProperties = multipartProperties;
     }
 
     /**
      * 文件上传配置
+     * 
      * @return 配置
      */
     @Bean
     @ConditionalOnMissingBean
-    public MultipartConfigElement multipartConfigElement(){
+    public MultipartConfigElement multipartConfigElement() {
         return this.multipartProperties.createMultipartConfig();
     }
 
     /**
      * 注册解析器
+     * 
      * @return 解析器
      */
     @Bean(name = DispatcherServlet.MULTIPART_RESOLVER_BEAN_NAME)
     @ConditionalOnMissingBean
-    public StandardServletMultipartResolver multipartResolver(){
+    public StandardServletMultipartResolver multipartResolver() {
         StandardServletMultipartResolver standardServletMultipartResolver = new StandardServletMultipartResolver();
         standardServletMultipartResolver.setResolveLazily(this.multipartProperties.isResolveLazily());
         return standardServletMultipartResolver;

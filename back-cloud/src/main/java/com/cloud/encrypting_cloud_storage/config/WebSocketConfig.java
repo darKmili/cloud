@@ -24,8 +24,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
      * @return
      */
     @Bean
-    public ServerEndpointExporter serverEndpointExporter()
-    {
+    public ServerEndpointExporter serverEndpointExporter() {
         return new ServerEndpointExporter();
     }
 
@@ -35,19 +34,17 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
      * @return
      */
     @Bean
-    public ServletServerContainerFactoryBean createWebSocketContainer()
-    {
+    public ServletServerContainerFactoryBean createWebSocketContainer() {
         ServletServerContainerFactoryBean bean = new ServletServerContainerFactoryBean();
-        //文本缓冲区大小 8MB
-        bean.setMaxTextMessageBufferSize(1024*1024*8);
-        //字节缓冲区大小 8MB
-        bean.setMaxBinaryMessageBufferSize(1024*1024*8);
+        // 文本缓冲区大小 8MB
+        bean.setMaxTextMessageBufferSize(1024 * 1024 * 8);
+        // 字节缓冲区大小 8MB
+        bean.setMaxBinaryMessageBufferSize(1024 * 1024 * 8);
         return bean;
     }
+
     /**
-     * 注册stomp端点。起到的作用就是添加一个服务端点，来接收客户端的连接，
-     * registry.addEndpoint("/tmax/ws")
-     * 表示添加了一个 /tmax/ws 端点，客户端可以通过这个端点来进行连接。
+     * 注册stomp端点。起到的作用就是添加一个服务端点，来接收客户端的连接， registry.addEndpoint("/tmax/ws") 表示添加了一个 /tmax/ws 端点，客户端可以通过这个端点来进行连接。
      * withSockJS() 的作用是开启 SockJS 访问支持，即可通过http://IP:PORT/tmax/ws 来和服务端 websocket 连接。
      */
     @Override

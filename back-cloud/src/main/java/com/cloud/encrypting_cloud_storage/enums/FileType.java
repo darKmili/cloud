@@ -14,8 +14,10 @@ public enum FileType {
      * 目录
      */
     DIR("DIR");
+
     private String type;
-    private FileType(String type){
+
+    private FileType(String type) {
         this.type = type;
     }
 

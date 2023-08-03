@@ -1,20 +1,19 @@
 package com.cloud.encrypting_cloud_storage.service.impl;
 
-import com.cloud.encrypting_cloud_storage.models.po.FileBlockPo;
-import com.qiniu.http.Client;
-import com.qiniu.http.Response;
-import com.qiniu.storage.UploadManager;
-import com.qiniu.util.Auth;
-import com.qiniu.util.StringMap;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
+import com.cloud.encrypting_cloud_storage.models.po.FileBlockPo;
+import com.qiniu.http.Client;
+import com.qiniu.http.Response;
+import com.qiniu.storage.UploadManager;
+import com.qiniu.util.Auth;
+import com.qiniu.util.StringMap;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author leon
@@ -35,7 +34,6 @@ public class QiniuFileBlockServiceImpl extends BlockServiceImpl implements Initi
 
     private StringMap putPolicy;
 
-
     @Autowired
     public QiniuFileBlockServiceImpl(Auth auth, UploadManager uploadManager) {
         this.auth = auth;
@@ -46,7 +44,8 @@ public class QiniuFileBlockServiceImpl extends BlockServiceImpl implements Initi
     public void afterPropertiesSet() throws Exception {
         this.putPolicy = new StringMap();
         // 设置返回体的格式
-        putPolicy.put("returnBody", "{\"key\":\"$(key)\",\"hash\":\"$(etag)\",\"bucket\":\"$(bucket)\",\"width\":$(imageInfo.width), \"height\":${imageInfo.height}}");
+        putPolicy.put("returnBody",
+            "{\"key\":\"$(key)\",\"hash\":\"$(etag)\",\"bucket\":\"$(bucket)\",\"width\":$(imageInfo.width), \"height\":${imageInfo.height}}");
     }
 
     /**
@@ -58,10 +57,9 @@ public class QiniuFileBlockServiceImpl extends BlockServiceImpl implements Initi
         return this.auth.uploadToken(bucket, null, 3600, putPolicy);
     }
 
-
     @Override
     public String uploadBlock(FileBlockPo fileBlockPo) throws Exception {
-        log.debug("-------------------"+fileBlockPo.getFingerprint());
+        log.debug("-------------------" + fileBlockPo.getFingerprint());
         Response response = uploadManager.put(fileBlockPo.getData(), fileBlockPo.getFingerprint(), getUploadToken());
         int retry = 0;
         while (response.needRetry() && retry < 3) {
@@ -73,6 +71,7 @@ public class QiniuFileBlockServiceImpl extends BlockServiceImpl implements Initi
 
     /**
      * 基于七牛云的下载 TODO
+     * 
      * @param fileBlockPo
      * @return
      * @throws Exception

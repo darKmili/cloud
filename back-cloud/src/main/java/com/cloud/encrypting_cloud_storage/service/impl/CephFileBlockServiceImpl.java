@@ -1,31 +1,26 @@
 package com.cloud.encrypting_cloud_storage.service.impl;
 
-import cn.hutool.core.collection.ListUtil;
-import com.amazonaws.HttpMethod;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.*;
-import com.amazonaws.util.Base64;
-import com.amazonaws.util.IOUtils;
-import com.cloud.encrypting_cloud_storage.exceptions.ApiException;
-import com.cloud.encrypting_cloud_storage.models.po.FileBlockPo;
-import com.cloud.encrypting_cloud_storage.models.po.FilePo;
-import com.cloud.encrypting_cloud_storage.util.MyStringUtil;
-import lombok.extern.slf4j.Slf4j;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.time.Instant;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.time.Instant;
-import java.util.*;
+import com.amazonaws.HttpMethod;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.*;
+import com.amazonaws.util.Base64;
+import com.amazonaws.util.IOUtils;
+import com.cloud.encrypting_cloud_storage.models.po.FileBlockPo;
 
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author leon
@@ -63,9 +58,8 @@ public class CephFileBlockServiceImpl extends BlockServiceImpl {
 
         // Generate the presigned URL.// key需要是Base64编码
         GeneratePresignedUrlRequest generatePresignedUrlRequest =
-                new GeneratePresignedUrlRequest(bucketName,  Base64.encodeAsString(fileBlockPo.getFingerprint().getBytes()))
-                        .withMethod(HttpMethod.GET)
-                        .withExpiration(expiration);
+            new GeneratePresignedUrlRequest(bucketName, Base64.encodeAsString(fileBlockPo.getFingerprint().getBytes()))
+                .withMethod(HttpMethod.GET).withExpiration(expiration);
         URL url = amazonS3.generatePresignedUrl(generatePresignedUrlRequest);
         fileBlockPo.setUrl(url.toString());
         return url.toString();
@@ -110,7 +104,6 @@ public class CephFileBlockServiceImpl extends BlockServiceImpl {
         return fileByte;
     }
 
-
     /**
      * inputStream转byte[]
      *
@@ -129,8 +122,6 @@ public class CephFileBlockServiceImpl extends BlockServiceImpl {
         return swapStream.toByteArray();
     }
 
-
-
     @Override
     @Async("defaultThreadPoolExecutor")
     public void deleteBlock(FileBlockPo fileBlockPo) {
@@ -143,7 +134,6 @@ public class CephFileBlockServiceImpl extends BlockServiceImpl {
         }
     }
 
-
     @Override
     public String getFingerprintUrl(String fingerprint) {
         String fileName = Base64.encodeAsString(fingerprint.getBytes());
@@ -155,9 +145,7 @@ public class CephFileBlockServiceImpl extends BlockServiceImpl {
         // Generate the presigned URL.
         System.out.println("Generating pre-signed URL.");
         GeneratePresignedUrlRequest generatePresignedUrlRequest =
-                new GeneratePresignedUrlRequest(bucketName, fileName)
-                        .withMethod(HttpMethod.GET)
-                        .withExpiration(expiration);
+            new GeneratePresignedUrlRequest(bucketName, fileName).withMethod(HttpMethod.GET).withExpiration(expiration);
         URL url = amazonS3.generatePresignedUrl(generatePresignedUrlRequest);
         return url.toString();
     }

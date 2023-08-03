@@ -1,5 +1,7 @@
 package com.cloud.encrypting_cloud_storage.config;
 
+import java.io.Serializable;
+
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.cache.CacheManager;
@@ -15,14 +17,11 @@ import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSeriali
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
-import java.io.Serializable;
-
 /**
  * Created with IntelliJ IDEA.
  *
- * @author： leon
- * @description：
- * @date： 2022/5/24
+ * @author： leon @description： @date： 2022/5/24
+ * 
  * @version: 1.0
  */
 @Configuration
@@ -49,9 +48,10 @@ public class RedisConfig {
     public CacheManager cacheManager(RedisConnectionFactory factory) {
         // 配置序列化
         RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig();
-        RedisCacheConfiguration redisCacheConfiguration = config.
-                serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
-                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()));
+        RedisCacheConfiguration redisCacheConfiguration = config
+            .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
+            .serializeValuesWith(
+                RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()));
         return RedisCacheManager.builder(factory).cacheDefaults(redisCacheConfiguration).build();
     }
 }

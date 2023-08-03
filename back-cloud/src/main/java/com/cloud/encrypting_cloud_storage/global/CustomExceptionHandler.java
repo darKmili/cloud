@@ -1,10 +1,12 @@
 package com.cloud.encrypting_cloud_storage.global;
 
-import com.cloud.encrypting_cloud_storage.exceptions.ApiException;
-import com.cloud.encrypting_cloud_storage.models.ApiResponse;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import com.cloud.encrypting_cloud_storage.exceptions.ApiException;
+import com.cloud.encrypting_cloud_storage.models.ApiResponse;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author leon
@@ -24,8 +26,5 @@ public class CustomExceptionHandler {
     public ApiResponse jsonErrorHandler(ApiException apiException) {
         return ApiResponse.ofException(apiException);
     }
-
-
-
 
 }
